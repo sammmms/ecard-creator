@@ -24,8 +24,40 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Bizapps.id - E-Card Greeting",
-  description: "Share your prosperity with digital greetings.",
+  title: {
+    default: "Bizapps.id — Digital Greeting Cards for Chinese New Year & More",
+    template: "%s | Bizapps.id",
+  },
+  description:
+    "Create elegant, animated digital greeting cards for Chinese New Year. Share prosperity instantly via WhatsApp or QR code. Premium templates with integrated digital angpao.",
+  keywords: [
+    "Chinese New Year greeting card",
+    "digital greeting card",
+    "CNY e-card",
+    "animated greeting",
+    "digital angpao",
+    "lunar new year card",
+    "e-card generator",
+    "Bizapps",
+  ],
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || "https://bizapps.id",
+  ),
+  openGraph: {
+    title: "Bizapps.id — Digital Greeting Cards",
+    description:
+      "Create elegant, animated digital greeting cards for Chinese New Year. Share prosperity instantly via WhatsApp or QR code.",
+    type: "website",
+    siteName: "Bizapps.id",
+    images: ["/logo/gold-square.png"],
+  },
+  twitter: {
+    card: "summary",
+    title: "Bizapps.id — Digital Greeting Cards",
+    description:
+      "Create elegant, animated digital greeting cards for Chinese New Year.",
+    images: ["/logo/gold-square.png"],
+  },
   icons: {
     icon: "/logo/gold-square.png",
     apple: "/logo/gold-square.png",
