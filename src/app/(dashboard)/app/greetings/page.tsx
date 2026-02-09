@@ -60,107 +60,189 @@ export default function GreetingsPage() {
         </motion.div>
       </motion.div>
 
-      <motion.div
-        variants={anim.scaleIn}
-        className="glass-card rounded-xl overflow-hidden"
-      >
-        <table className="w-full text-left">
-          <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-            <tr>
-              <th className="px-6 py-4 text-xs font-medium text-gray-500 uppercase">
-                Title
-              </th>
-              <th className="px-6 py-4 text-xs font-medium text-gray-500 uppercase">
-                Template
-              </th>
-              <th className="px-6 py-4 text-xs font-medium text-gray-500 uppercase">
-                Status
-              </th>
-              <th className="px-6 py-4 text-xs font-medium text-gray-500 uppercase">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {greetings.map((greeting, i) => (
-              <motion.tr
-                key={greeting.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.06, duration: 0.3 }}
-                className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-              >
-                <td className="px-6 py-4">
-                  <div className="font-medium">
-                    {greeting.title || "Untitled"}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Created{" "}
-                    {new Date(greeting.createdAt).toLocaleDateString()}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {greeting.template.name}
-                </td>
-                <td className="px-6 py-4">
-                  <StatusBadge status={greeting.status} />
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    {greeting.status === "pending_payment" ||
-                    greeting.status === "draft" ? (
-                      <Link
-                        href={`/app/greetings/${greeting.id}/pay`}
-                        className="link-theme flex items-center gap-1 text-sm font-medium"
-                      >
-                        <CreditCard size={14} /> Pay
-                      </Link>
-                    ) : (
-                      <>
+      {/* Desktop table view */}
+      <div className="hidden md:block">
+        <motion.div
+          variants={anim.scaleIn}
+          className="glass-card rounded-xl overflow-hidden"
+        >
+          <table className="w-full text-left">
+            <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+              <tr>
+                <th className="px-6 py-4 text-xs font-medium text-gray-500 uppercase">
+                  Title
+                </th>
+                <th className="px-6 py-4 text-xs font-medium text-gray-500 uppercase">
+                  Template
+                </th>
+                <th className="px-6 py-4 text-xs font-medium text-gray-500 uppercase">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-xs font-medium text-gray-500 uppercase">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {greetings.map((greeting, i) => (
+                <motion.tr
+                  key={greeting.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.06, duration: 0.3 }}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                >
+                  <td className="px-6 py-4">
+                    <div className="font-medium">
+                      {greeting.title || "Untitled"}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Created{" "}
+                      {new Date(greeting.createdAt).toLocaleDateString()}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {greeting.template.name}
+                  </td>
+                  <td className="px-6 py-4">
+                    <StatusBadge status={greeting.status} />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      {greeting.status === "pending_payment" ||
+                      greeting.status === "draft" ? (
                         <Link
-                          href={`/g/${greeting.slug}`}
-                          target="_blank"
+                          href={`/app/greetings/${greeting.id}/pay`}
                           className="link-theme flex items-center gap-1 text-sm font-medium"
                         >
-                          <ExternalLink size={14} /> View
+                          <CreditCard size={14} /> Pay
                         </Link>
-                        <Link
-                          href={`/app/greetings/${greeting.id}/edit`}
-                          className="text-gray-600 hover:text-gray-800 flex items-center gap-1 text-sm font-medium"
-                        >
-                          <Edit size={14} /> Edit
-                        </Link>
-                      </>
-                    )}
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-            {greetings.length === 0 && (
-              <tr>
-                <td
-                  colSpan={4}
-                  className="px-6 py-16 text-center"
-                >
-                  <Layers size={40} className="mx-auto text-gray-300 mb-4" />
-                  <p className="text-gray-500 font-medium">
-                    No greetings yet.
-                  </p>
-                  <p className="text-gray-400 text-sm mt-1 mb-4">
-                    Create your first greeting card to get started.
-                  </p>
-                  <Link
-                    href="/app/templates"
-                    className="link-theme font-medium text-sm"
+                      ) : (
+                        <>
+                          <Link
+                            href={`/g/${greeting.slug}`}
+                            target="_blank"
+                            className="link-theme flex items-center gap-1 text-sm font-medium"
+                          >
+                            <ExternalLink size={14} /> View
+                          </Link>
+                          <Link
+                            href={`/app/greetings/${greeting.id}/edit`}
+                            className="text-gray-600 hover:text-gray-800 flex items-center gap-1 text-sm font-medium"
+                          >
+                            <Edit size={14} /> Edit
+                          </Link>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+              {greetings.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-6 py-16 text-center"
                   >
-                    Browse Templates →
+                    <Layers size={40} className="mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-500 font-medium">
+                      No greetings yet.
+                    </p>
+                    <p className="text-gray-400 text-sm mt-1 mb-4">
+                      Create your first greeting card to get started.
+                    </p>
+                    <Link
+                      href="/app/templates"
+                      className="link-theme font-medium text-sm"
+                    >
+                      Browse Templates →
+                    </Link>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </motion.div>
+      </div>
+
+      {/* Mobile card view */}
+      <div className="md:hidden space-y-3">
+        {greetings.map((greeting, i) => (
+          <motion.div
+            key={greeting.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.06, duration: 0.3 }}
+            className="glass-card rounded-xl p-4 space-y-3"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="font-medium truncate">
+                  {greeting.title || "Untitled"}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Created{" "}
+                  {new Date(greeting.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+              <StatusBadge status={greeting.status} />
+            </div>
+
+            <div className="text-sm text-gray-500">
+              {greeting.template.name}
+            </div>
+
+            <div className="flex items-center gap-3 pt-1 border-t border-gray-200 dark:border-gray-700">
+              {greeting.status === "pending_payment" ||
+              greeting.status === "draft" ? (
+                <Link
+                  href={`/app/greetings/${greeting.id}/pay`}
+                  className="link-theme flex items-center gap-1 text-sm font-medium"
+                >
+                  <CreditCard size={14} /> Pay
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href={`/g/${greeting.slug}`}
+                    target="_blank"
+                    className="link-theme flex items-center gap-1 text-sm font-medium"
+                  >
+                    <ExternalLink size={14} /> View
                   </Link>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </motion.div>
+                  <Link
+                    href={`/app/greetings/${greeting.id}/edit`}
+                    className="text-gray-600 hover:text-gray-800 flex items-center gap-1 text-sm font-medium"
+                  >
+                    <Edit size={14} /> Edit
+                  </Link>
+                </>
+              )}
+            </div>
+          </motion.div>
+        ))}
+
+        {greetings.length === 0 && (
+          <motion.div
+            variants={anim.scaleIn}
+            className="glass-card rounded-xl px-6 py-16 text-center"
+          >
+            <Layers size={40} className="mx-auto text-gray-300 mb-4" />
+            <p className="text-gray-500 font-medium">
+              No greetings yet.
+            </p>
+            <p className="text-gray-400 text-sm mt-1 mb-4">
+              Create your first greeting card to get started.
+            </p>
+            <Link
+              href="/app/templates"
+              className="link-theme font-medium text-sm"
+            >
+              Browse Templates →
+            </Link>
+          </motion.div>
+        )}
+      </div>
     </motion.div>
   );
 }

@@ -18,6 +18,7 @@ import UpgradeModal from "@/components/UpgradeModal";
 import PageLoader from "@/components/PageLoader";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import * as anim from "@/lib/animations";
+import toast from "react-hot-toast";
 
 interface Greeting {
   id: string;
@@ -118,13 +119,14 @@ export default function EditGreetingPage() {
 
       if (!res.ok) {
         const txt = await res.text();
-        alert(`Error: ${txt}`);
+        toast.error(`Error: ${txt}`);
         setSaving(false);
         return;
       }
 
       setSaving(false);
       setSaved(true);
+      toast.success("Changes saved!");
       setTimeout(() => router.push("/app/greetings"), 800);
     } catch (error) {
       console.error(error);
@@ -169,7 +171,8 @@ export default function EditGreetingPage() {
             variants={anim.fadeInUp}
             className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300"
           >
-            <strong>Trial Greeting:</strong> Some features are locked. Upgrade to a paid template to unlock custom logo, donations, and more.
+            <strong>Trial Greeting:</strong> Some features are locked. Upgrade
+            to a paid template to unlock custom logo, donations, and more.
             <button
               onClick={() => handleUpgradeTrigger("trial_banner")}
               className="ml-2 underline underline-offset-2 font-bold hover:text-amber-900 dark:hover:text-amber-200 transition-colors"
@@ -193,9 +196,7 @@ export default function EditGreetingPage() {
             >
               <label className="block text-sm font-medium mb-1.5 flex items-center gap-2">
                 Company Logo
-                {isTrial && (
-                  <Lock size={12} className="text-amber-500" />
-                )}
+                {isTrial && <Lock size={12} className="text-amber-500" />}
               </label>
               {formData.companyLogoUrl ? (
                 <div className="flex items-center gap-3">
@@ -231,7 +232,9 @@ export default function EditGreetingPage() {
                   ) : (
                     <Upload size={16} />
                   )}
-                  {isTrial ? "Logo locked — Upgrade to unlock" : "Upload logo (PNG, JPG, WebP)"}
+                  {isTrial
+                    ? "Logo locked — Upgrade to unlock"
+                    : "Upload logo (PNG, JPG, WebP)"}
                   {!isTrial && (
                     <input
                       type="file"
@@ -304,7 +307,7 @@ export default function EditGreetingPage() {
             </motion.div>
 
             <motion.div
-              className="grid grid-cols-2 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
@@ -380,7 +383,11 @@ export default function EditGreetingPage() {
                 }}
                 disabled={isTrial}
                 label="Enable Donations"
-                icon={isTrial ? <Lock size={12} className="text-amber-500" /> : undefined}
+                icon={
+                  isTrial ? (
+                    <Lock size={12} className="text-amber-500" />
+                  ) : undefined
+                }
                 onClick={
                   isTrial
                     ? (e) => {
@@ -421,9 +428,7 @@ export default function EditGreetingPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={`px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-colors ${
-                saved
-                  ? "bg-green-600 text-white"
-                  : "btn-theme text-white"
+                saved ? "bg-green-600 text-white" : "btn-theme text-white"
               }`}
             >
               {saving ? (

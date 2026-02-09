@@ -12,34 +12,34 @@ export default function Home() {
     <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white font-sans overflow-x-hidden">
       {/* Navbar (Minimal) */}
       <nav className="fixed top-0 w-full z-50 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img
               src={logoIcon}
               alt="Bizapps.id"
-              className="w-8 h-8 object-contain"
+              className="w-7 h-7 sm:w-8 sm:h-8 object-contain"
             />
             <img
               src={logoText}
               alt="Bizapps.id"
-              className="h-6 object-contain dark:hidden"
+              className="h-5 sm:h-6 object-contain dark:hidden"
             />
             <img
               src={logoTextDark}
               alt="Bizapps.id"
-              className="h-6 object-contain hidden dark:block"
+              className="h-5 sm:h-6 object-contain hidden dark:block"
             />
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-2 sm:gap-4">
             <Link
               href="/login"
-              className="px-5 py-2.5 rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-white/10 transition"
+              className="px-3 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium hover:bg-gray-100 dark:hover:bg-white/10 transition"
             >
               Login
             </Link>
             <Link
               href="/register"
-              className="px-5 py-2.5 rounded-full btn-theme text-white text-sm font-medium transition shadow-theme"
+              className="px-3 py-2 sm:px-5 sm:py-2.5 rounded-full btn-theme text-white text-xs sm:text-sm font-medium transition shadow-theme"
             >
               Get Started
             </Link>
@@ -48,7 +48,7 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-6">
+      <section className="relative pt-28 pb-16 sm:pt-32 sm:pb-20 lg:pt-48 lg:pb-32 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

@@ -1,25 +1,45 @@
 "use client";
 
+import { Suspense, useRef } from "react";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { TextField, PasswordField } from "@/components/TextField";
+import toast from "react-hot-toast";
+import { useEffect } from "react";
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginPageInner />
+    </Suspense>
+  );
+}
+
+function LoginPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { logoIcon, logoTextDark } = useTheme();
-  const [email, setEmail] = useState("demo@company.com");
-  const [password, setPassword] = useState("password123");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const toastShownRef = useRef(false);
+
+  // Show success toast if redirected from registration
+  useEffect(() => {
+    if (searchParams.get("registered") === "true" && !toastShownRef.current) {
+      toastShownRef.current = true;
+      toast.success("Account created! Please sign in.");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
 
     const res = await signIn("credentials", {
       email,
@@ -28,9 +48,10 @@ export default function LoginPage() {
     });
 
     if (res?.error) {
-      setError("Invalid email or password");
+      toast.error("Invalid email or password");
       setIsLoading(false);
     } else {
+      toast.success("Welcome back!");
       router.push("/app");
     }
   };
@@ -52,7 +73,7 @@ export default function LoginPage() {
               "url(https://images.unsplash.com/photo-1548679720-3df74ba0c4df?q=80&w=2070&auto=format&fit=crop)",
           }} // Example CNY/Red abstract
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+        <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-black/40" />
 
         <div className="relative z-10 p-12 text-center text-white max-w-lg">
           <motion.div
@@ -103,45 +124,31 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="p-4 rounded-lg bg-theme-soft border border-theme-primary/20 text-theme-primary text-sm"
-            >
-              {error}
-            </motion.div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-6">
+            <TextField
+              type="email"
+              label="Email Address"
+              placeholder="you@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email Address
+                Password
               </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 focus:bg-white dark:focus:bg-black focus-theme transition-all outline-none"
+              <PasswordField
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
-            </div>
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Password
-                </label>
+              <div className="mt-2 text-right">
                 <a href="#" className="text-sm link-theme font-medium">
                   Forgot password?
                 </a>
               </div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 focus:bg-white dark:focus:bg-black focus-theme transition-all outline-none"
-                required
-              />
             </div>
 
             <div className="pt-2">
@@ -158,16 +165,6 @@ export default function LoginPage() {
                   </>
                 )}
               </button>
-              <p className="mt-4 text-center text-sm text-gray-500">
-                Use{" "}
-                <span className="font-mono text-gray-700 dark:text-gray-300">
-                  demo@company.com
-                </span>{" "}
-                /{" "}
-                <span className="font-mono text-gray-700 dark:text-gray-300">
-                  password123
-                </span>
-              </p>
             </div>
           </form>
 

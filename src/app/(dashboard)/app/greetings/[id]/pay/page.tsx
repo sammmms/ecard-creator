@@ -7,6 +7,7 @@ import { Loader2, CheckCircle, CreditCard, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import * as anim from "@/lib/animations";
 import PageLoader from "@/components/PageLoader";
+import toast from "react-hot-toast";
 
 interface Payment {
   id: string;
@@ -39,6 +40,7 @@ export default function PayPage() {
       })
       .catch((err) => {
         console.error(err);
+        toast.error("Failed to load greeting");
         setLoading(false);
       });
   }, [params.id]);
@@ -53,10 +55,12 @@ export default function PayPage() {
 
       if (data.checkoutUrl) {
         await fetch(`/api/payments/webhook?paymentId=${data.payment.id}`);
+        toast.success("Payment successful!");
         window.location.reload();
       }
     } catch (error) {
       console.error(error);
+      toast.error("Payment failed. Please try again.");
       setProcessing(false);
     }
   };
@@ -82,9 +86,7 @@ export default function PayPage() {
           <ArrowLeft size={14} /> Back to greetings
         </Link>
         <h1 className="text-3xl font-bold">Complete Payment</h1>
-        <p className="text-gray-500 mt-1">
-          Pay to publish your greeting card.
-        </p>
+        <p className="text-gray-500 mt-1">Pay to publish your greeting card.</p>
       </motion.div>
 
       <motion.div

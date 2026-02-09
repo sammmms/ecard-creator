@@ -26,6 +26,7 @@ model Template {
   price           Int      @default(0)
   previewImageUrl String?
   configJson      String   // Stores JSON string of template config
+  componentSlug   String?  // Maps to a static frontend template component
   isActive        Boolean  @default(true)
   isTrial         Boolean  @default(false)
 

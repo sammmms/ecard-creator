@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import * as anim from "@/lib/animations";
 import PageLoader from "@/components/PageLoader";
+import toast from "react-hot-toast";
 
 interface Template {
   id: string;
@@ -24,6 +25,7 @@ interface Template {
   isTrial: boolean;
   previewImageUrl: string;
   configJson: string;
+  componentSlug?: string | null;
 }
 
 export default function TemplatesPage() {
@@ -32,7 +34,7 @@ export default function TemplatesPage() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
-    null
+    null,
   );
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
   const [hasTrialGreeting, setHasTrialGreeting] = useState(false);
@@ -45,7 +47,9 @@ export default function TemplatesPage() {
       .then(([templateData, greetingsData]) => {
         setTemplates(templateData);
         // Check if user already has a trial greeting
-        const hasTrial = Array.isArray(greetingsData) && greetingsData.some((g: any) => g.isTrial);
+        const hasTrial =
+          Array.isArray(greetingsData) &&
+          greetingsData.some((g: any) => g.isTrial);
         setHasTrialGreeting(hasTrial);
         setLoading(false);
       })
@@ -68,7 +72,7 @@ export default function TemplatesPage() {
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         if (data?.error) {
-          alert(data.error);
+          toast.error(data.error);
         }
         setCreating(false);
         return;
@@ -91,7 +95,9 @@ export default function TemplatesPage() {
   const handleTryTemplate = (template: Template) => {
     if (template.isTrial) {
       if (hasTrialGreeting) {
-        alert("You already have a trial greeting. Upgrade to a paid template for full features!");
+        toast.error(
+          "You already have a trial greeting. Upgrade to a paid template for full features!",
+        );
         return;
       }
       setSelectedTemplate(template);
@@ -115,7 +121,7 @@ export default function TemplatesPage() {
         variants={anim.staggerContainer}
       >
         <motion.div
-          className="flex justify-between items-center"
+          className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2"
           variants={anim.fadeInDown}
         >
           <div>
@@ -317,11 +323,26 @@ export default function TemplatesPage() {
               </button>
 
               {/* Preview area - simulates the greeting layout */}
-              <div className="relative aspect-[4/3] bg-gradient-to-br from-red-800 via-red-600 to-red-900 overflow-hidden flex items-center justify-center">
+              <div className={`relative aspect-[4/3] overflow-hidden flex items-center justify-center ${
+                previewTemplate.componentSlug === "gold-n-shiny"
+                  ? "bg-gradient-to-br from-gray-900 via-gray-800 to-yellow-900"
+                  : previewTemplate.componentSlug === "crimson-bloom"
+                    ? "bg-gradient-to-br from-red-800 via-rose-600 to-red-900"
+                    : previewTemplate.componentSlug === "jade-prosperity"
+                      ? "bg-gradient-to-br from-emerald-800 via-emerald-600 to-emerald-900"
+                      : "bg-gradient-to-br from-red-800 via-red-600 to-red-900"
+              }`}>
                 {/* Decorative elements */}
                 <div className="absolute inset-0 opacity-20">
-                  <div className="absolute top-4 left-6 text-4xl animate-pulse">🏮</div>
-                  <div className="absolute top-8 right-8 text-3xl animate-pulse" style={{ animationDelay: "1s" }}>🏮</div>
+                  <div className="absolute top-4 left-6 text-4xl animate-pulse">
+                    🏮
+                  </div>
+                  <div
+                    className="absolute top-8 right-8 text-3xl animate-pulse"
+                    style={{ animationDelay: "1s" }}
+                  >
+                    🏮
+                  </div>
                   <div className="absolute bottom-12 left-12 text-2xl">🌸</div>
                   <div className="absolute bottom-8 right-10 text-2xl">🌸</div>
                 </div>
@@ -337,12 +358,15 @@ export default function TemplatesPage() {
                     [Your Greeting Title]
                   </h3>
                   <p className="text-gray-500 text-sm leading-relaxed mb-4">
-                    [Your greeting message will appear here. Write something warm and heartfelt for the recipients!]
+                    [Your greeting message will appear here. Write something
+                    warm and heartfelt for the recipients!]
                   </p>
                   <div className="text-sm">
                     <span className="text-primary/60 text-xs">With Love,</span>
                     <br />
-                    <span className="font-bold text-theme-primary">[Company Name]</span>
+                    <span className="font-bold text-theme-primary">
+                      [Company Name]
+                    </span>
                   </div>
                 </div>
 
@@ -352,7 +376,9 @@ export default function TemplatesPage() {
                     {previewTemplate.name}
                   </h4>
                   {previewTemplate.isTrial ? (
-                    <span className="text-green-400 text-sm font-medium">Free Trial</span>
+                    <span className="text-green-400 text-sm font-medium">
+                      Free Trial
+                    </span>
                   ) : (
                     <span className="text-white/70 text-sm">
                       {new Intl.NumberFormat("id-ID", {
@@ -472,9 +498,7 @@ export default function TemplatesPage() {
                     <span className="text-gray-500 flex items-center gap-2">
                       <FileImage size={14} /> Template
                     </span>
-                    <span className="font-medium">
-                      {selectedTemplate.name}
-                    </span>
+                    <span className="font-medium">{selectedTemplate.name}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-500 flex items-center gap-2">
@@ -514,22 +538,25 @@ export default function TemplatesPage() {
                   {selectedTemplate.isTrial ? (
                     <>
                       <p>
-                        Your trial greeting will be published immediately with limited features.
-                        Custom logo, donations, and full sharing are locked.
+                        Your trial greeting will be published immediately with
+                        limited features. Custom logo, donations, and full
+                        sharing are locked.
                       </p>
                       <p>
-                        Upgrade anytime by choosing a paid template for the full experience.
+                        Upgrade anytime by choosing a paid template for the full
+                        experience.
                       </p>
                     </>
                   ) : (
                     <>
                       <p>
-                        By proceeding you will create a new greeting card from this
-                        template. You will be redirected to complete payment.
+                        By proceeding you will create a new greeting card from
+                        this template. You will be redirected to complete
+                        payment.
                       </p>
                       <p>
-                        Once paid, your greeting will be published with a permanent
-                        shareable link.
+                        Once paid, your greeting will be published with a
+                        permanent shareable link.
                       </p>
                     </>
                   )}

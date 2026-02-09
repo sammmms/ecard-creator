@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { TextField, PasswordField } from "@/components/TextField";
+import toast from "react-hot-toast";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,27 +18,42 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match");
       setIsLoading(false);
       return;
     }
 
-    // MOCK REGISTER: specific API not built yet, we'll simulate success or handle via NextAuth if we had a provider
-    // For MVP, we'll just redirect to Login or auto-login (simulated)
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          companyName: formData.companyName,
+        }),
+      });
 
-    setTimeout(() => {
-      // In real app: await fetch('/api/auth/register', ...)
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Registration failed");
+        setIsLoading(false);
+        return;
+      }
+
       router.push("/login?registered=true");
-    }, 1000);
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -58,7 +75,7 @@ export default function RegisterPage() {
               "url(https://images.unsplash.com/photo-1516013289047-9ce41180fb78?q=80&w=2064&auto=format&fit=crop)",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-red-900/40 via-transparent to-black/60" />
+        <div className="absolute inset-0 bg-linear-to-t from-red-900/40 via-transparent to-black/60" />
 
         <div className="relative z-10 p-12 text-center text-white max-w-lg">
           <motion.div
@@ -113,73 +130,51 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          {error && (
-            <div className="p-4 rounded-lg alert-error text-sm">{error}</div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Company Name
-              </label>
-              <input
-                type="text"
-                value={formData.companyName}
-                onChange={(e) =>
-                  setFormData({ ...formData, companyName: e.target.value })
-                }
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 focus:bg-white dark:focus:bg-black input-focus-theme transition-all outline-none"
-                required
-              />
-            </div>
+            <TextField
+              type="text"
+              label="Company Name"
+              placeholder="Your Company Name"
+              value={formData.companyName}
+              onChange={(e) =>
+                setFormData({ ...formData, companyName: e.target.value })
+              }
+              required
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 focus:bg-white dark:focus:bg-black input-focus-theme transition-all outline-none"
-                required
-              />
-            </div>
+            <TextField
+              type="email"
+              label="Email Address"
+              placeholder="you@company.com"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              required
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 focus:bg-white dark:focus:bg-black input-focus-theme transition-all outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      confirmPassword: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 focus:bg-white dark:focus:bg-black input-focus-theme transition-all outline-none"
-                  required
-                />
-              </div>
+              <PasswordField
+                label="Password"
+                placeholder="Create a password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                required
+              />
+              <PasswordField
+                label="Confirm Password"
+                placeholder="Confirm password"
+                value={formData.confirmPassword}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    confirmPassword: e.target.value,
+                  })
+                }
+                required
+              />
             </div>
 
             <div className="pt-4">

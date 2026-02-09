@@ -14,6 +14,7 @@ import {
 import * as anim from "@/lib/animations";
 import PageLoader from "@/components/PageLoader";
 import ToggleSwitch from "@/components/ToggleSwitch";
+import toast from "react-hot-toast";
 
 interface QrisEntry {
   label: string;
@@ -91,10 +92,13 @@ export default function PaymentSettingsPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
       if (!res.ok) {
         const msg = await res.text();
-        alert(msg);
+        toast.error(msg || "Upload failed");
         setUploading(false);
         return;
       }
@@ -153,6 +157,7 @@ export default function PaymentSettingsPage() {
         });
       }
       setSaved(true);
+      toast.success("Settings saved!");
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {
       console.error(error);
@@ -266,7 +271,7 @@ export default function PaymentSettingsPage() {
                 </div>
 
                 {/* E-Wallet fields */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1.5">
                       E-Wallet Type
@@ -355,11 +360,7 @@ export default function PaymentSettingsPage() {
                   </div>
 
                   <motion.label
-                    whileHover={
-                      !uploading && newLabel.trim()
-                        ? {}
-                        : {}
-                    }
+                    whileHover={!uploading && newLabel.trim() ? {} : {}}
                     className={`border-2 border-dashed rounded-xl p-6 text-center block transition-colors ${
                       !newLabel.trim() || uploading
                         ? "border-gray-200 dark:border-gray-800 opacity-50 cursor-not-allowed"
@@ -470,9 +471,7 @@ export default function PaymentSettingsPage() {
               whileHover={{ scale: saving || uploading ? 1 : 1.02 }}
               whileTap={{ scale: saving || uploading ? 1 : 0.98 }}
               className={`px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-60 ${
-                saved
-                  ? "bg-green-600 text-white"
-                  : "btn-theme text-white"
+                saved ? "bg-green-600 text-white" : "btn-theme text-white"
               }`}
             >
               {saving ? (
