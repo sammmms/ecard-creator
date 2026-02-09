@@ -113,7 +113,7 @@ export default function DashboardPage() {
         className="grid grid-cols-1 md:grid-cols-3 gap-6"
         variants={anim.staggerContainer}
       >
-        {statCards.map((card, i) => {
+        {statCards.map((card) => {
           const Icon = card.icon;
           return (
             <motion.div

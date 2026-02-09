@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Save,
   AlertTriangle,
-  Upload,
   CheckCircle,
   Loader2,
   Trash2,
@@ -323,9 +323,12 @@ export default function PaymentSettingsPage() {
                         transition={{ duration: 0.2 }}
                         className="flex items-center gap-3 p-3 border rounded-lg dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
                       >
-                        <img
+                        <Image
                           src={entry.url}
                           alt={entry.label}
+                          width={56}
+                          height={56}
+                          unoptimized
                           className="w-14 h-14 object-cover rounded-lg border dark:border-gray-600"
                         />
                         <div className="flex-1 min-w-0">

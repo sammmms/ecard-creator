@@ -28,7 +28,7 @@ export default function DemoPage() {
   );
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#8B1538] via-[#A01B43] to-[#8B1538]">
+    <div className="relative min-h-screen overflow-hidden bg-linear-to-b from-[#8B1538] via-[#A01B43] to-[#8B1538]">
       {/* Curtain/Stripe Pattern Background */}
       <div
         className="absolute inset-0 opacity-30"
@@ -119,7 +119,7 @@ export default function DemoPage() {
             src="/demo/8.png"
             alt="Decorations"
             fill
-            className="object-contain object-right-top"
+            className="object-contain object-top-right"
           />
         </motion.div>
       </motion.div>
@@ -296,7 +296,7 @@ export default function DemoPage() {
             src="/demo/9.png"
             alt="Family gathering"
             fill
-            className="object-contain object-left-bottom"
+            className="object-contain object-bottom-left"
           />
         </motion.div>
       </motion.div>
@@ -322,7 +322,7 @@ export default function DemoPage() {
             src="/demo/7.png"
             alt="Horse decoration"
             fill
-            className="object-contain object-right-bottom"
+            className="object-contain object-bottom-right"
           />
         </motion.div>
       </motion.div>

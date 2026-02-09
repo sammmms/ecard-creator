@@ -141,9 +141,7 @@ export default async function AnalyticsPage() {
 
   // Format event type labels
   function formatEventType(type: string): string {
-    return type
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase());
+    return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
   // Format currency
@@ -168,33 +166,41 @@ export default async function AnalyticsPage() {
       {/* Top Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="glass-card rounded-xl p-6">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Views</p>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Total Views
+          </p>
           <p className="text-3xl font-bold mt-2">
-            <span className="bg-theme-gradient bg-clip-text text-transparent">
+            <span className="text-theme-gradient">
               {totalViews.toLocaleString()}
             </span>
           </p>
         </div>
         <div className="glass-card rounded-xl p-6">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Shares</p>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Total Shares
+          </p>
           <p className="text-3xl font-bold mt-2">
-            <span className="bg-theme-gradient bg-clip-text text-transparent">
+            <span className="text-theme-gradient">
               {totalShares.toLocaleString()}
             </span>
           </p>
         </div>
         <div className="glass-card rounded-xl p-6">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Wishes</p>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Total Wishes
+          </p>
           <p className="text-3xl font-bold mt-2">
-            <span className="bg-theme-gradient bg-clip-text text-transparent">
+            <span className="text-theme-gradient">
               {totalWishes.toLocaleString()}
             </span>
           </p>
         </div>
         <div className="glass-card rounded-xl p-6">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Donations</p>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Total Donations
+          </p>
           <p className="text-3xl font-bold mt-2">
-            <span className="bg-theme-gradient bg-clip-text text-transparent">
+            <span className="text-theme-gradient">
               {formatCurrency(totalDonations)}
             </span>
           </p>
@@ -210,16 +216,24 @@ export default async function AnalyticsPage() {
             <p className="text-2xl font-bold mt-1">{totalGreetings}</p>
           </div>
           <div className="glass-card rounded-xl p-5">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Published</p>
-            <p className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">{publishedCount}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Published
+            </p>
+            <p className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+              {publishedCount}
+            </p>
           </div>
           <div className="glass-card rounded-xl p-5">
             <p className="text-sm text-gray-500 dark:text-gray-400">Draft</p>
-            <p className="text-2xl font-bold mt-1 text-gray-600 dark:text-gray-400">{draftCount}</p>
+            <p className="text-2xl font-bold mt-1 text-gray-600 dark:text-gray-400">
+              {draftCount}
+            </p>
           </div>
           <div className="glass-card rounded-xl p-5">
             <p className="text-sm text-gray-500 dark:text-gray-400">Trial</p>
-            <p className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">{trialCount}</p>
+            <p className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">
+              {trialCount}
+            </p>
           </div>
         </div>
       </div>
@@ -227,17 +241,29 @@ export default async function AnalyticsPage() {
       {/* Per-Greeting Stats Table */}
       {perGreetingStats.length > 0 && (
         <div>
-          <h2 className="text-xl font-semibold mb-4">Per-Greeting Performance</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            Per-Greeting Performance
+          </h2>
           <div className="glass-card rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700">
-                    <th className="text-left px-5 py-3 font-medium text-gray-500 dark:text-gray-400">Greeting</th>
-                    <th className="text-left px-5 py-3 font-medium text-gray-500 dark:text-gray-400">Status</th>
-                    <th className="text-right px-5 py-3 font-medium text-gray-500 dark:text-gray-400">Views</th>
-                    <th className="text-right px-5 py-3 font-medium text-gray-500 dark:text-gray-400">Shares</th>
-                    <th className="text-right px-5 py-3 font-medium text-gray-500 dark:text-gray-400">Wishes</th>
+                    <th className="text-left px-5 py-3 font-medium text-gray-500 dark:text-gray-400">
+                      Greeting
+                    </th>
+                    <th className="text-left px-5 py-3 font-medium text-gray-500 dark:text-gray-400">
+                      Status
+                    </th>
+                    <th className="text-right px-5 py-3 font-medium text-gray-500 dark:text-gray-400">
+                      Views
+                    </th>
+                    <th className="text-right px-5 py-3 font-medium text-gray-500 dark:text-gray-400">
+                      Shares
+                    </th>
+                    <th className="text-right px-5 py-3 font-medium text-gray-500 dark:text-gray-400">
+                      Wishes
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -263,9 +289,15 @@ export default async function AnalyticsPage() {
                           {g.isTrial ? "trial" : g.status}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-right font-medium">{g.views}</td>
-                      <td className="px-5 py-3 text-right font-medium">{g.shares}</td>
-                      <td className="px-5 py-3 text-right font-medium">{g.wishes}</td>
+                      <td className="px-5 py-3 text-right font-medium">
+                        {g.views}
+                      </td>
+                      <td className="px-5 py-3 text-right font-medium">
+                        {g.shares}
+                      </td>
+                      <td className="px-5 py-3 text-right font-medium">
+                        {g.wishes}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -280,7 +312,8 @@ export default async function AnalyticsPage() {
         <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
         {recentEvents.length === 0 ? (
           <div className="glass-card rounded-xl p-8 text-center text-gray-500 dark:text-gray-400">
-            No events recorded yet. Share your greetings to start seeing activity.
+            No events recorded yet. Share your greetings to start seeing
+            activity.
           </div>
         ) : (
           <div className="glass-card rounded-xl divide-y divide-gray-200 dark:divide-gray-700 overflow-hidden">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import {
   X,
   Heart,
@@ -13,6 +14,7 @@ import {
   Copy,
   Check,
 } from "lucide-react";
+import Button from "@/components/Button";
 
 interface PaymentMethods {
   qrisImages: Array<{ label: string; url: string }>;
@@ -186,12 +188,9 @@ export default function SendWishModal({
                 <Heart size={18} className="text-red-500" />
                 <h3 className="font-bold text-gray-900">Send Wish</h3>
               </div>
-              <button
-                onClick={handleClose}
-                className="p-1 rounded-full hover:bg-gray-100 transition"
-              >
-                <X size={20} className="text-gray-400" />
-              </button>
+              <Button variant="icon" size="sm" onClick={handleClose}>
+                <X size={18} />
+              </Button>
             </div>
 
             {/* Content */}
@@ -464,10 +463,13 @@ export default function SendWishModal({
 
                       {selectedMethodData.type === "qris" && (
                         <div className="bg-white p-3 rounded-lg border border-gray-200 inline-block">
-                          <img
+                          <Image
                             src={selectedMethodData.detail}
                             alt={selectedMethodData.label}
+                            width={208}
+                            height={208}
                             className="w-52 h-52 object-contain mx-auto"
+                            unoptimized
                           />
                         </div>
                       )}
@@ -481,16 +483,13 @@ export default function SendWishModal({
                           <code className="bg-white px-4 py-2 rounded-lg border border-gray-200 text-lg font-mono font-bold text-gray-800">
                             {selectedMethodData.detail}
                           </code>
-                          <button
-                            onClick={handleCopyNumber}
-                            className="p-2 rounded-lg hover:bg-gray-200 transition text-gray-500"
-                          >
+                          <Button variant="icon" size="md" onClick={handleCopyNumber}>
                             {copied ? (
                               <Check size={18} className="text-green-500" />
                             ) : (
                               <Copy size={18} />
                             )}
-                          </button>
+                          </Button>
                         </div>
                       )}
 
@@ -508,12 +507,9 @@ export default function SendWishModal({
                       )}
                     </div>
 
-                    <button
-                      onClick={handleClose}
-                      className="w-full py-3 rounded-xl border border-gray-200 font-medium text-sm text-gray-700 hover:bg-gray-50 transition"
-                    >
+                    <Button variant="secondary" size="lg" fullWidth onClick={handleClose}>
                       Done
-                    </button>
+                    </Button>
                   </motion.div>
                 )}
               </AnimatePresence>

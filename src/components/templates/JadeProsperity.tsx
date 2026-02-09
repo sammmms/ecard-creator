@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Share2, Heart } from "lucide-react";
+import Image from "next/image";
 import type { TemplateProps } from "@/types/template";
 import FloatingWishes from "@/components/FloatingWishes";
 import SendWishModal from "@/components/SendWishModal";
@@ -180,14 +181,20 @@ export default function JadeProsperity({
         <div className="relative p-8 md:p-10 space-y-6">
           {/* Company logo */}
           {greeting.companyLogoUrl && !isTrial && (
-            <motion.img
-              src={greeting.companyLogoUrl}
-              alt="Company Logo"
-              className="w-16 h-16 mx-auto object-contain rounded-lg"
+            <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, type: "spring" }}
-            />
+            >
+              <Image
+                src={greeting.companyLogoUrl!}
+                alt="Company Logo"
+                width={64}
+                height={64}
+                className="w-16 h-16 mx-auto object-contain rounded-lg"
+                unoptimized
+              />
+            </motion.div>
           )}
 
           {/* Trial watermark instead of logo */}

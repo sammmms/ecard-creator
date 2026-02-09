@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Star, Heart, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -14,19 +15,25 @@ export default function Home() {
       <nav className="fixed top-0 w-full z-50 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img
+            <Image
               src={logoIcon}
               alt="Bizapps.id"
+              width={32}
+              height={32}
               className="w-7 h-7 sm:w-8 sm:h-8 object-contain"
             />
-            <img
+            <Image
               src={logoText}
               alt="Bizapps.id"
+              width={120}
+              height={24}
               className="h-5 sm:h-6 object-contain dark:hidden"
             />
-            <img
+            <Image
               src={logoTextDark}
               alt="Bizapps.id"
+              width={120}
+              height={24}
               className="h-5 sm:h-6 object-contain hidden dark:block"
             />
           </div>
@@ -142,7 +149,7 @@ export default function Home() {
       </section>
 
       {/* Features Grid */}
-      <section id="features" className="py-20 bg-gray-50 dark:bg-white/[0.03]">
+      <section id="features" className="py-20 bg-gray-50 dark:bg-white/3">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[

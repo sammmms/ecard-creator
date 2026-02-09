@@ -14,8 +14,10 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import Select from "@/components/Select";
 import UpgradeModal from "@/components/UpgradeModal";
+import Button from "@/components/Button";
 import PageLoader from "@/components/PageLoader";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import * as anim from "@/lib/animations";
@@ -235,18 +237,23 @@ export default function EditGreetingPage() {
               </label>
               {formData.companyLogoUrl ? (
                 <div className="flex items-center gap-3">
-                  <img
+                  <Image
                     src={formData.companyLogoUrl}
                     alt="Logo"
+                    width={56}
+                    height={56}
+                    unoptimized
                     className="w-14 h-14 object-contain rounded-lg border border-gray-200 dark:border-gray-700"
                   />
-                  <button
+                  <Button
+                    variant="destructive"
+                    size="sm"
                     type="button"
                     onClick={handleRemoveLogo}
-                    className="link-theme text-sm flex items-center gap-1"
+                    icon={<Trash2 size={14} />}
                   >
-                    <Trash2 size={14} /> Remove
-                  </button>
+                    Remove
+                  </Button>
                 </div>
               ) : (
                 <label

@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { usePathname } from "next/navigation";
 
 // Seasonal color themes
@@ -198,7 +204,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.style.setProperty("--theme-primary-hover", primaryHover);
     root.style.setProperty("--theme-accent", accent);
     root.style.setProperty("--theme-accent-hover", accentHover);
-  }, [effectiveThemeName, isDark, mounted, effectiveTheme.primary.dark, effectiveTheme.primary.light, effectiveTheme.accent.dark, effectiveTheme.accent.light]);
+  }, [
+    effectiveThemeName,
+    isDark,
+    mounted,
+    effectiveTheme.primary.dark,
+    effectiveTheme.primary.light,
+    effectiveTheme.accent.dark,
+    effectiveTheme.accent.light,
+  ]);
 
   const setDarkMode = (mode: DarkMode) => {
     setDarkModeState(mode);

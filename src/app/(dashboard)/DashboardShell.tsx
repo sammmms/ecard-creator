@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -16,6 +17,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
+import Button from "@/components/Button";
 import SettingsDropdown from "@/components/SettingsDropdown";
 import { useTheme } from "@/components/providers/ThemeProvider";
 
@@ -115,22 +117,22 @@ export default function DashboardShell({
     <div className="min-h-screen flex bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100">
       {/* ── Mobile top bar ── */}
       <div className="fixed top-0 left-0 right-0 z-30 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 h-14 flex items-center px-4 md:hidden">
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          aria-label="Open sidebar"
-        >
-          <Menu size={22} />
-        </button>
+        <Button variant="icon" size="md" onClick={() => setSidebarOpen(true)} aria-label="Open menu">
+          <Menu size={20} />
+        </Button>
         <div className="flex items-center gap-2 ml-3">
-          <img
+          <Image
             src={logoIcon}
             alt="Bizapps.id"
+            width={28}
+            height={28}
             className="w-7 h-7 object-contain"
           />
-          <img
+          <Image
             src={isDark ? logoTextDark : logoText}
             alt="Bizapps.id"
+            width={80}
+            height={16}
             className="h-4 object-contain"
           />
         </div>
@@ -160,24 +162,24 @@ export default function DashboardShell({
               {/* Close button + logo */}
               <div className="p-6 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <img
+                  <Image
                     src={logoIcon}
                     alt="Bizapps.id"
+                    width={32}
+                    height={32}
                     className="w-8 h-8 object-contain"
                   />
-                  <img
+                  <Image
                     src={isDark ? logoTextDark : logoText}
                     alt="Bizapps.id"
+                    width={100}
+                    height={20}
                     className="h-5 object-contain"
                   />
                 </div>
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  aria-label="Close sidebar"
-                >
+                <Button variant="icon" size="md" onClick={() => setSidebarOpen(false)} aria-label="Close menu">
                   <X size={20} />
-                </button>
+                </Button>
               </div>
 
               {sidebarContent}
@@ -195,14 +197,18 @@ export default function DashboardShell({
           transition={{ duration: 0.4 }}
         >
           <div className="flex items-center gap-2">
-            <img
+            <Image
               src={logoIcon}
               alt="Bizapps.id"
+              width={32}
+              height={32}
               className="w-8 h-8 object-contain"
             />
-            <img
+            <Image
               src={isDark ? logoTextDark : logoText}
               alt="Bizapps.id"
+              width={100}
+              height={20}
               className="h-5 object-contain"
             />
           </div>

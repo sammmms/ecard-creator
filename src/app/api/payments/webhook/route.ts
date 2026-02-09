@@ -5,7 +5,7 @@ import db from "@/lib/db";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { externalRef, status } = body;
+    const { externalRef } = body;
     // Xendit usually sends "status": "PAID" or "SETTLED" keys etc.
     // For our mock: { paymentId: string } or { externalRef: string }
 
@@ -59,7 +59,7 @@ export async function GET(req: Request) {
     });
 
     return NextResponse.json({ success: true, status: "paid" });
-  } catch (e) {
+  } catch {
     return new NextResponse("Error", { status: 500 });
   }
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Share2, Heart } from "lucide-react";
+import Image from "next/image";
 import type { TemplateProps } from "@/types/template";
 import ShareModal from "@/components/ShareModal";
 import SendWishModal from "@/components/SendWishModal";
@@ -22,7 +23,7 @@ function GoldSparkleOverlay() {
   );
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-1">
       {sparkles.map((s) => (
         <motion.div
           key={s.id}
@@ -67,7 +68,7 @@ function GoldParticleShower() {
   );
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[2]">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-2">
       {particles.map((p) => (
         <motion.div
           key={p.id}
@@ -110,8 +111,7 @@ function GoldParticleShower() {
 
 // Decorative gold L-shape corners for the card
 function DecorativeCorners() {
-  const cornerStyle =
-    "absolute w-6 h-6 pointer-events-none";
+  const cornerStyle = "absolute w-6 h-6 pointer-events-none";
   const borderColor = "border-yellow-500/50";
 
   return (
@@ -216,9 +216,7 @@ export default function GoldNShiny({
       )}
 
       {/* Floating Wishes */}
-      {!isPreview && wishes.length > 0 && (
-        <FloatingWishes wishes={wishes} />
-      )}
+      {!isPreview && wishes.length > 0 && <FloatingWishes wishes={wishes} />}
 
       {/* Main Card */}
       <motion.div
@@ -233,7 +231,7 @@ export default function GoldNShiny({
 
         {/* Gold accent line at top */}
         <motion.div
-          className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent"
+          className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-yellow-400 to-transparent"
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
           transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
@@ -245,14 +243,20 @@ export default function GoldNShiny({
         <div className="relative p-8 space-y-6">
           {/* Company logo */}
           {greeting.companyLogoUrl && !isTrial && (
-            <motion.img
-              src={greeting.companyLogoUrl}
-              alt="Company Logo"
-              className="w-16 h-16 mx-auto object-contain rounded-lg"
+            <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, type: "spring" }}
-            />
+            >
+              <Image
+                src={greeting.companyLogoUrl!}
+                alt="Company Logo"
+                width={64}
+                height={64}
+                className="w-16 h-16 mx-auto object-contain rounded-lg"
+                unoptimized
+              />
+            </motion.div>
           )}
 
           {/* Trial watermark instead of logo */}
@@ -269,7 +273,7 @@ export default function GoldNShiny({
 
           {/* Title with gold gradient */}
           <motion.h1
-            className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-600 bg-clip-text text-transparent drop-shadow-sm"
+            className="text-4xl md:text-5xl font-bold bg-linear-to-r from-yellow-300 via-amber-400 to-yellow-600 bg-clip-text text-transparent drop-shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
@@ -302,7 +306,7 @@ export default function GoldNShiny({
           >
             <span className="text-yellow-600/60 text-sm">With Love,</span>
             <br />
-            <span className="text-2xl bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-600 bg-clip-text text-transparent">
+            <span className="text-2xl bg-linear-to-r from-yellow-300 via-amber-400 to-yellow-600 bg-clip-text text-transparent">
               {isPreview
                 ? greeting.senderNameDefault || "[Company Name]"
                 : greeting.senderNameDefault || "Our Family"}
@@ -331,7 +335,7 @@ export default function GoldNShiny({
                   onClick={() => setShowDonation(true)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-700 hover:to-amber-600 text-white px-5 py-2.5 rounded-full text-sm font-medium transition shadow-lg shadow-yellow-600/25"
+                  className="flex items-center gap-2 bg-linear-to-r from-yellow-600 to-amber-500 hover:from-yellow-700 hover:to-amber-600 text-white px-5 py-2.5 rounded-full text-sm font-medium transition shadow-lg shadow-yellow-600/25"
                 >
                   <Heart size={16} /> Send Wish
                 </motion.button>

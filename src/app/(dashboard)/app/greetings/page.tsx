@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, Edit, CreditCard, Layers } from "lucide-react";
 import Link from "next/link";
-import clsx from "clsx";
 import * as anim from "@/lib/animations";
 import PageLoader from "@/components/PageLoader";
 import StatusBadge from "@/components/StatusBadge";

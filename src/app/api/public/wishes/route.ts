@@ -4,7 +4,7 @@ import db from "@/lib/db";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { greetingId, name, comment, donationAmount, paymentMethod } = body;
+    const { greetingId, name, comment, donationAmount } = body;
 
     if (!greetingId) {
       return new NextResponse("greetingId is required", { status: 400 });

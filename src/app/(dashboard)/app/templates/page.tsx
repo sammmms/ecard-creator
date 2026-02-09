@@ -10,13 +10,14 @@ import {
   CreditCard,
   FileImage,
   CheckCircle,
-  Eye,
   Gift,
   Lock,
 } from "lucide-react";
 import * as anim from "@/lib/animations";
 import PageLoader from "@/components/PageLoader";
+import Button from "@/components/Button";
 import toast from "react-hot-toast";
+import TemplateCard from "@/components/TemplateCard";
 
 interface Template {
   id: string;
@@ -164,66 +165,13 @@ export default function TemplatesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {trialTemplates.map((template) => (
-                <motion.div
+                <TemplateCard
                   key={template.id}
-                  variants={anim.staggerItem}
-                  whileHover={{ y: -6, transition: { duration: 0.2 } }}
-                  className="glass-card rounded-xl overflow-hidden hover:shadow-xl transition-shadow group relative"
-                >
-                  {/* Free badge */}
-                  <div className="absolute top-3 left-3 z-10">
-                    <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                      FREE
-                    </span>
-                  </div>
-
-                  <div className="aspect-video bg-gray-200 dark:bg-gray-800 relative overflow-hidden">
-                    {template.previewImageUrl ? (
-                      <div
-                        className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                        style={{
-                          backgroundImage: `url(${template.previewImageUrl})`,
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10 dark:from-primary/20 dark:to-accent/20">
-                        <Sparkles size={32} className="text-primary/40" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
-                      <motion.button
-                        onClick={() => setPreviewTemplate(template)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="bg-white/90 text-gray-800 px-4 py-2 rounded-full font-bold text-sm transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 flex items-center gap-1.5"
-                      >
-                        <Eye size={14} /> Preview
-                      </motion.button>
-                      <motion.button
-                        onClick={() => handleTryTemplate(template)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        disabled={hasTrialGreeting}
-                        className="bg-green-500 text-white px-4 py-2 rounded-full font-bold text-sm transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {hasTrialGreeting ? "Trial Used" : "Try Now"}
-                      </motion.button>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-bold">{template.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-green-600 dark:text-green-400 font-bold">
-                        Free
-                      </span>
-                      {hasTrialGreeting && (
-                        <span className="text-xs text-gray-400 flex items-center gap-1">
-                          <Lock size={10} /> Already used
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
+                  template={template}
+                  onPreview={setPreviewTemplate}
+                  onUse={handleTryTemplate}
+                  hasTrialGreeting={hasTrialGreeting}
+                />
               ))}
             </div>
           </motion.div>
@@ -242,55 +190,12 @@ export default function TemplatesPage() {
               variants={anim.staggerContainer}
             >
               {paidTemplates.map((template) => (
-                <motion.div
+                <TemplateCard
                   key={template.id}
-                  variants={anim.staggerItem}
-                  whileHover={{ y: -6, transition: { duration: 0.2 } }}
-                  className="glass-card rounded-xl overflow-hidden hover:shadow-xl transition-shadow group"
-                >
-                  <div className="aspect-video bg-gray-200 dark:bg-gray-800 relative overflow-hidden">
-                    {template.previewImageUrl ? (
-                      <div
-                        className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                        style={{
-                          backgroundImage: `url(${template.previewImageUrl})`,
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <Sparkles size={32} />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
-                      <motion.button
-                        onClick={() => setPreviewTemplate(template)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="bg-white/90 text-gray-800 px-4 py-2 rounded-full font-bold text-sm transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 flex items-center gap-1.5"
-                      >
-                        <Eye size={14} /> Preview
-                      </motion.button>
-                      <motion.button
-                        onClick={() => setSelectedTemplate(template)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="bg-white text-black px-4 py-2 rounded-full font-bold text-sm hover:bg-gray-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75"
-                      >
-                        Use Template
-                      </motion.button>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-bold">{template.name}</h3>
-                    <p className="text-gray-500 mt-1">
-                      {new Intl.NumberFormat("id-ID", {
-                        style: "currency",
-                        currency: "IDR",
-                        minimumFractionDigits: 0,
-                      }).format(template.price)}
-                    </p>
-                  </div>
-                </motion.div>
+                  template={template}
+                  onPreview={setPreviewTemplate}
+                  onUse={setSelectedTemplate}
+                />
               ))}
             </motion.div>
           </motion.div>
@@ -323,15 +228,17 @@ export default function TemplatesPage() {
               </button>
 
               {/* Preview area - simulates the greeting layout */}
-              <div className={`relative aspect-[4/3] overflow-hidden flex items-center justify-center ${
-                previewTemplate.componentSlug === "gold-n-shiny"
-                  ? "bg-gradient-to-br from-gray-900 via-gray-800 to-yellow-900"
-                  : previewTemplate.componentSlug === "crimson-bloom"
-                    ? "bg-gradient-to-br from-red-800 via-rose-600 to-red-900"
-                    : previewTemplate.componentSlug === "jade-prosperity"
-                      ? "bg-gradient-to-br from-emerald-800 via-emerald-600 to-emerald-900"
-                      : "bg-gradient-to-br from-red-800 via-red-600 to-red-900"
-              }`}>
+              <div
+                className={`relative aspect-4/3 overflow-hidden flex items-center justify-center ${
+                  previewTemplate.componentSlug === "gold-n-shiny"
+                    ? "bg-linear-to-br from-gray-900 via-gray-800 to-yellow-900"
+                    : previewTemplate.componentSlug === "crimson-bloom"
+                      ? "bg-linear-to-br from-red-800 via-rose-600 to-red-900"
+                      : previewTemplate.componentSlug === "jade-prosperity"
+                        ? "bg-linear-to-br from-emerald-800 via-emerald-600 to-emerald-900"
+                        : "bg-linear-to-br from-red-800 via-red-600 to-red-900"
+                }`}
+              >
                 {/* Decorative elements */}
                 <div className="absolute inset-0 opacity-20">
                   <div className="absolute top-4 left-6 text-4xl animate-pulse">
@@ -371,7 +278,7 @@ export default function TemplatesPage() {
                 </div>
 
                 {/* Template name overlay */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 to-transparent p-4">
                   <h4 className="text-white font-bold text-lg">
                     {previewTemplate.name}
                   </h4>
@@ -393,12 +300,14 @@ export default function TemplatesPage() {
 
               {/* Actions */}
               <div className="p-5 flex gap-3">
-                <button
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="flex-1"
                   onClick={() => setPreviewTemplate(null)}
-                  className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   Close
-                </button>
+                </Button>
                 <motion.button
                   onClick={() => {
                     setPreviewTemplate(null);
@@ -410,7 +319,7 @@ export default function TemplatesPage() {
                   }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex-[2] py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-colors ${
+                  className={`flex-2 py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-colors ${
                     previewTemplate.isTrial
                       ? "bg-green-500 hover:bg-green-600"
                       : "btn-theme"
@@ -465,7 +374,7 @@ export default function TemplatesPage() {
               </button>
 
               {/* Template preview header */}
-              <div className="aspect-[2/1] bg-gray-200 dark:bg-gray-800 relative">
+              <div className="aspect-2/1 bg-gray-200 dark:bg-gray-800 relative">
                 {selectedTemplate.previewImageUrl ? (
                   <div
                     className="w-full h-full bg-cover bg-center"
@@ -474,11 +383,11 @@ export default function TemplatesPage() {
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10 dark:from-primary/20 dark:to-accent/20">
+                  <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-primary/10 to-accent/10 dark:from-primary/20 dark:to-accent/20">
                     <Sparkles size={48} className="text-primary/40" />
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
                 <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
                   <h3 className="text-white text-xl font-bold drop-shadow-lg">
                     {selectedTemplate.name}
@@ -563,19 +472,21 @@ export default function TemplatesPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    className="flex-1"
                     onClick={() => setSelectedTemplate(null)}
                     disabled={creating}
-                    className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
                   >
                     Cancel
-                  </button>
+                  </Button>
                   <motion.button
                     onClick={handleConfirmPurchase}
                     disabled={creating}
                     whileHover={{ scale: creating ? 1 : 1.02 }}
                     whileTap={{ scale: creating ? 1 : 0.98 }}
-                    className={`flex-[2] py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-70 transition-colors ${
+                    className={`flex-2 py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-70 transition-colors ${
                       selectedTemplate.isTrial
                         ? "bg-green-500 hover:bg-green-600"
                         : "btn-theme"

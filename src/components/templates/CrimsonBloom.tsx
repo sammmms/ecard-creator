@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Share2, Heart } from "lucide-react";
+import Image from "next/image";
 import ShareModal from "@/components/ShareModal";
 import SendWishModal from "@/components/SendWishModal";
 import FloatingWishes from "@/components/FloatingWishes";
@@ -28,7 +29,7 @@ const petals = generatePetals();
 
 function CherryBlossomOverlay() {
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[1]">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-1">
       {petals.map((petal) => (
         <motion.div
           key={petal.id}
@@ -43,7 +44,13 @@ function CherryBlossomOverlay() {
           }}
           animate={{
             y: ["0vh", "105vh"],
-            x: [0, petal.swayAmount, -petal.swayAmount, petal.swayAmount / 2, 0],
+            x: [
+              0,
+              petal.swayAmount,
+              -petal.swayAmount,
+              petal.swayAmount / 2,
+              0,
+            ],
             rotate: [petal.rotation, petal.rotation + 360],
             opacity: [0, 0.8, 0.8, 0.6, 0],
           }}
@@ -81,12 +88,12 @@ function CherryBlossomOverlay() {
 function PaperCutDivider() {
   return (
     <div className="flex items-center justify-center gap-0 w-full py-2">
-      <div className="flex-1 h-px bg-gradient-to-r from-transparent to-red-400/50" />
+      <div className="flex-1 h-px bg-linear-to-r from-transparent to-red-400/50" />
       <div className="relative mx-3 flex items-center justify-center">
         <div className="w-2.5 h-2.5 rounded-full bg-red-500/60 shadow-sm" />
         <div className="absolute w-4 h-4 border border-red-400/30 rotate-45" />
       </div>
-      <div className="flex-1 h-px bg-gradient-to-l from-transparent to-red-400/50" />
+      <div className="flex-1 h-px bg-linear-to-l from-transparent to-red-400/50" />
     </div>
   );
 }
@@ -170,7 +177,7 @@ export default function CrimsonBloom({
 
       {/* Soft red glow behind card */}
       <div
-        className="absolute z-[4] w-[500px] h-[500px] pointer-events-none"
+        className="absolute z-4 w-[500px] h-[500px] pointer-events-none"
         style={{
           background:
             "radial-gradient(ellipse at center, rgba(220,20,60,0.25) 0%, transparent 70%)",
@@ -190,7 +197,7 @@ export default function CrimsonBloom({
 
         {/* Red accent line at top */}
         <motion.div
-          className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent"
+          className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-red-500 to-transparent"
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
           transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
@@ -199,14 +206,20 @@ export default function CrimsonBloom({
         <div className="relative p-8 space-y-6">
           {/* Company logo */}
           {greeting.companyLogoUrl && !isTrial && (
-            <motion.img
-              src={greeting.companyLogoUrl}
-              alt="Company Logo"
-              className="w-16 h-16 mx-auto object-contain rounded-lg"
+            <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, type: "spring" }}
-            />
+            >
+              <Image
+                src={greeting.companyLogoUrl!}
+                alt="Company Logo"
+                width={64}
+                height={64}
+                className="w-16 h-16 mx-auto object-contain rounded-lg"
+                unoptimized
+              />
+            </motion.div>
           )}
 
           {/* Trial watermark instead of logo */}
@@ -226,7 +239,7 @@ export default function CrimsonBloom({
 
           {/* Title */}
           <motion.h1
-            className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-red-700 via-rose-600 to-red-800 bg-clip-text text-transparent drop-shadow-sm"
+            className="text-4xl md:text-5xl font-bold bg-linear-to-r from-red-700 via-rose-600 to-red-800 bg-clip-text text-transparent drop-shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
@@ -262,7 +275,7 @@ export default function CrimsonBloom({
           >
             <span className="text-red-700/60 text-sm">With Love,</span>
             <br />
-            <span className="text-2xl bg-gradient-to-r from-red-700 to-red-900 bg-clip-text text-transparent">
+            <span className="text-2xl bg-linear-to-r from-red-700 to-red-900 bg-clip-text text-transparent">
               {isPreview
                 ? greeting.senderNameDefault || "[Company Name]"
                 : greeting.senderNameDefault || "Our Family"}
@@ -291,7 +304,7 @@ export default function CrimsonBloom({
                   onClick={() => setShowDonation(true)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-5 py-2.5 rounded-full text-sm font-medium transition shadow-lg shadow-red-600/25"
+                  className="flex items-center gap-2 bg-linear-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-5 py-2.5 rounded-full text-sm font-medium transition shadow-lg shadow-red-600/25"
                 >
                   <Heart size={16} /> Send Wish
                 </motion.button>

@@ -16,6 +16,7 @@ import {
 import QRCode from "react-qr-code";
 import { MessageCircle } from "lucide-react";
 import UpgradeModal from "@/components/UpgradeModal";
+import Button from "@/components/Button";
 import { trackEvent } from "@/components/EventTracker";
 
 interface ShareModalProps {
@@ -193,12 +194,9 @@ export default function ShareModal({
                 <h3 className="font-bold text-gray-900 dark:text-white">
                   Share Greeting
                 </h3>
-                <button
-                  onClick={onClose}
-                  className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                >
-                  <X size={20} className="text-gray-500" />
-                </button>
+                <Button variant="icon" size="sm" onClick={onClose}>
+                  <X size={18} />
+                </Button>
               </div>
 
               {/* Content */}
@@ -300,16 +298,18 @@ export default function ShareModal({
                     className="bg-transparent border-none outline-none text-sm text-gray-600 dark:text-gray-300 w-full truncate"
                   />
                   <div className="relative">
-                    <button
+                    <Button
+                      variant="icon"
+                      size="lg"
                       onClick={handleCopy}
-                      className="p-2 bg-white dark:bg-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-gray-700 dark:text-gray-200"
+                      className="bg-white dark:bg-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
                       {copied ? (
                         <Check size={18} className="text-green-500" />
                       ) : (
                         <Copy size={18} />
                       )}
-                    </button>
+                    </Button>
                     {showConfetti && (
                       <ConfettiBurst
                         onComplete={() => setShowConfetti(false)}

@@ -5,8 +5,10 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Loader2, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft } from "lucide-react";
+import Button from "@/components/Button";
 import Link from "next/link";
+import Image from "next/image";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { TextField, PasswordField } from "@/components/TextField";
 import toast from "react-hot-toast";
@@ -82,14 +84,18 @@ function LoginPageInner() {
             transition={{ delay: 0.3, duration: 0.8 }}
           >
             <div className="flex items-center justify-center gap-3 mb-6">
-              <img
+              <Image
                 src={logoIcon}
                 alt="Bizapps.id"
+                width={48}
+                height={48}
                 className="w-12 h-12 object-contain"
               />
-              <img
+              <Image
                 src={logoTextDark}
                 alt="Bizapps.id"
+                width={160}
+                height={32}
                 className="h-8 object-contain"
               />
             </div>
@@ -152,19 +158,9 @@ function LoginPageInner() {
             </div>
 
             <div className="pt-2">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 btn-theme text-white py-3.5 rounded-xl font-bold transition-all transform active:scale-[0.98] shadow-theme"
-              >
-                {isLoading ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <>
-                    Sign In <ArrowRight size={18} />
-                  </>
-                )}
-              </button>
+              <Button type="submit" variant="primary" size="lg" fullWidth loading={isLoading} iconRight={!isLoading ? <ArrowRight size={18} /> : undefined}>
+                Sign In
+              </Button>
             </div>
           </form>
 

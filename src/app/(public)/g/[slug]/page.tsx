@@ -27,7 +27,9 @@ export async function generateMetadata({
   }
 
   const title = `${greeting.title || "Happy New Year"} — from ${greeting.senderNameDefault || "Someone Special"}`;
-  const description = (greeting.messageDefault || "A greeting card made with love").slice(0, 160);
+  const description = (
+    greeting.messageDefault || "A greeting card made with love"
+  ).slice(0, 160);
 
   return {
     title,
@@ -79,16 +81,21 @@ export default async function PublicGreetingPage({
   if (!greeting) return notFound();
 
   // Check if trial greeting has expired
-  if (greeting.isTrial && greeting.trialExpiresAt && new Date(greeting.trialExpiresAt) < new Date()) {
+  if (
+    greeting.isTrial &&
+    greeting.trialExpiresAt &&
+    new Date(greeting.trialExpiresAt) < new Date()
+  ) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-950 via-gray-950 to-gray-900 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-red-950 via-gray-950 to-gray-900 p-4">
         <div className="glass-card max-w-md w-full rounded-2xl p-8 text-center space-y-4">
           <div className="text-4xl mb-2">&#9201;</div>
           <h1 className="text-2xl font-bold text-white">
             This trial greeting has expired
           </h1>
           <p className="text-gray-400 text-sm leading-relaxed">
-            The trial period for this greeting has ended. Contact the sender for more information.
+            The trial period for this greeting has ended. Contact the sender for
+            more information.
           </p>
           <Link
             href="/app/templates"
@@ -143,9 +150,7 @@ export default async function PublicGreetingPage({
   const wishes = greeting.publicSubmissions.map((sub) => {
     // Try to match a donation by donor name + message
     const matchingDonation = greeting.donationPayments.find(
-      (d) =>
-        d.donorName === sub.name &&
-        d.donorMessage === sub.comment,
+      (d) => d.donorName === sub.name && d.donorMessage === sub.comment,
     );
 
     return {
@@ -180,7 +185,10 @@ export default async function PublicGreetingPage({
     return (
       <>
         <ViewTracker greetingId={greeting.id} />
-        <TemplateRenderer componentSlug={greeting.template.componentSlug} {...templateProps} />
+        <TemplateRenderer
+          componentSlug={greeting.template.componentSlug}
+          {...templateProps}
+        />
       </>
     );
   }

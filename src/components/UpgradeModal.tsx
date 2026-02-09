@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Check, X, Sparkles } from "lucide-react";
+import Button from "@/components/Button";
 import { useRouter } from "next/navigation";
 import * as anim from "@/lib/animations";
 
@@ -22,7 +23,6 @@ const FEATURES = [
 export default function UpgradeModal({
   isOpen,
   onClose,
-  trigger,
 }: UpgradeModalProps) {
   const router = useRouter();
 
@@ -53,12 +53,14 @@ export default function UpgradeModal({
             <div className="absolute top-0 left-0 right-0 h-32 bg-theme-gradient opacity-90" />
 
             {/* Close button */}
-            <button
+            <Button
+              variant="icon"
+              size="sm"
               onClick={onClose}
-              className="absolute top-3 right-3 z-10 text-white/80 hover:text-white transition-colors"
+              className="absolute top-3 right-3 z-10 text-white/80 hover:text-white"
             >
-              <X size={20} />
-            </button>
+              <X size={18} />
+            </Button>
 
             {/* Content */}
             <div className="relative pt-8 pb-6 px-6 text-center">

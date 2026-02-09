@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Share2, Heart } from "lucide-react";
+import Image from "next/image";
 import * as anim from "@/lib/animations";
 import ShareModal from "@/components/ShareModal";
 import Fireworks from "@/components/Fireworks";
@@ -65,11 +66,11 @@ function SparkleOverlay() {
       size: Math.random() * 3 + 1,
       delay: Math.random() * 5,
       duration: Math.random() * 3 + 3,
-    }))
+    })),
   );
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-1">
       {sparkles.map((s) => (
         <motion.div
           key={s.id}
@@ -125,7 +126,9 @@ export default function GreetingRenderer({
   const [showShare, setShowShare] = useState(false);
   const [wishes, setWishes] = useState<WishData[]>(initialWishes);
   const [prefersReduced, setPrefersReduced] = useState(
-    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
 
   useEffect(() => {
@@ -143,6 +146,8 @@ export default function GreetingRenderer({
   const showSendWish =
     (greeting.submissionsEnabled || greeting.donationEnabled) && !isTrial;
 
+  const newLocal =
+    "absolute inset-0 bg-gradient-to-b from-white/90 via-white/80 to-white/90 backdrop-blur-xl";
   return (
     <div className="relative min-h-screen w-full overflow-hidden text-center flex flex-col items-center justify-center font-sans">
       {/* Animated red gradient background */}
@@ -151,14 +156,16 @@ export default function GreetingRenderer({
           <div
             className="absolute inset-0"
             style={{
-              background: "linear-gradient(135deg, #8B0000 0%, #DC143C 50%, #B22222 100%)",
+              background:
+                "linear-gradient(135deg, #8B0000 0%, #DC143C 50%, #B22222 100%)",
             }}
           />
         ) : (
           <motion.div
             className="absolute inset-0"
             style={{
-              background: "linear-gradient(135deg, #8B0000 0%, #DC143C 25%, #B22222 50%, #FF4500 75%, #8B0000 100%)",
+              background:
+                "linear-gradient(135deg, #8B0000 0%, #DC143C 25%, #B22222 50%, #FF4500 75%, #8B0000 100%)",
               backgroundSize: "400% 400%",
             }}
             animate={{
@@ -180,7 +187,8 @@ export default function GreetingRenderer({
           animate={{ opacity: [0.3, 0.6, 0.3] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           style={{
-            background: "radial-gradient(ellipse at 30% 20%, rgba(255,215,0,0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(255,69,0,0.1) 0%, transparent 50%)",
+            background:
+              "radial-gradient(ellipse at 30% 20%, rgba(255,215,0,0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(255,69,0,0.1) 0%, transparent 50%)",
           }}
         />
       )}
@@ -197,7 +205,8 @@ export default function GreetingRenderer({
       <div
         className="absolute inset-0 -z-10"
         style={{
-          background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%)",
+          background:
+            "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%)",
         }}
       />
 
@@ -206,7 +215,7 @@ export default function GreetingRenderer({
 
       {/* Fireworks canvas */}
       {showFireworks && (
-        <div className="absolute inset-0 z-[2] pointer-events-none">
+        <div className="absolute inset-0 z-2 pointer-events-none">
           <Fireworks />
         </div>
       )}
@@ -223,7 +232,7 @@ export default function GreetingRenderer({
           return (
             <motion.div
               key={i}
-              className="absolute z-[3]"
+              className="absolute z-3"
               style={{
                 left: `${asset.x}%`,
                 top: `${asset.y}%`,
@@ -237,17 +246,90 @@ export default function GreetingRenderer({
               transition={{ delay: i * 0.3, duration: 0.6 }}
             >
               {asset.type === "lantern" && (
-                <svg width="48" height="64" viewBox="0 0 48 64" className="drop-shadow-lg" style={{ filter: "drop-shadow(0 0 10px rgba(255,50,50,0.6))" }}>
-                  <rect x="18" y="0" width="12" height="6" rx="1" fill="#DAA520" />
-                  <line x1="24" y1="6" x2="24" y2="12" stroke="#DAA520" strokeWidth="2" />
+                <svg
+                  width="48"
+                  height="64"
+                  viewBox="0 0 48 64"
+                  className="drop-shadow-lg"
+                  style={{
+                    filter: "drop-shadow(0 0 10px rgba(255,50,50,0.6))",
+                  }}
+                >
+                  <rect
+                    x="18"
+                    y="0"
+                    width="12"
+                    height="6"
+                    rx="1"
+                    fill="#DAA520"
+                  />
+                  <line
+                    x1="24"
+                    y1="6"
+                    x2="24"
+                    y2="12"
+                    stroke="#DAA520"
+                    strokeWidth="2"
+                  />
                   <ellipse cx="24" cy="36" rx="18" ry="24" fill="#DC143C" />
-                  <ellipse cx="24" cy="36" rx="18" ry="24" fill="url(#lanternGlow)" />
-                  <rect x="8" y="14" width="32" height="4" rx="2" fill="#DAA520" />
-                  <rect x="8" y="54" width="32" height="4" rx="2" fill="#DAA520" />
-                  <line x1="14" y1="18" x2="14" y2="54" stroke="#DAA520" strokeWidth="1" opacity="0.4" />
-                  <line x1="24" y1="18" x2="24" y2="54" stroke="#DAA520" strokeWidth="1" opacity="0.4" />
-                  <line x1="34" y1="18" x2="34" y2="54" stroke="#DAA520" strokeWidth="1" opacity="0.4" />
-                  <line x1="24" y1="58" x2="24" y2="64" stroke="#DAA520" strokeWidth="2" />
+                  <ellipse
+                    cx="24"
+                    cy="36"
+                    rx="18"
+                    ry="24"
+                    fill="url(#lanternGlow)"
+                  />
+                  <rect
+                    x="8"
+                    y="14"
+                    width="32"
+                    height="4"
+                    rx="2"
+                    fill="#DAA520"
+                  />
+                  <rect
+                    x="8"
+                    y="54"
+                    width="32"
+                    height="4"
+                    rx="2"
+                    fill="#DAA520"
+                  />
+                  <line
+                    x1="14"
+                    y1="18"
+                    x2="14"
+                    y2="54"
+                    stroke="#DAA520"
+                    strokeWidth="1"
+                    opacity="0.4"
+                  />
+                  <line
+                    x1="24"
+                    y1="18"
+                    x2="24"
+                    y2="54"
+                    stroke="#DAA520"
+                    strokeWidth="1"
+                    opacity="0.4"
+                  />
+                  <line
+                    x1="34"
+                    y1="18"
+                    x2="34"
+                    y2="54"
+                    stroke="#DAA520"
+                    strokeWidth="1"
+                    opacity="0.4"
+                  />
+                  <line
+                    x1="24"
+                    y1="58"
+                    x2="24"
+                    y2="64"
+                    stroke="#DAA520"
+                    strokeWidth="2"
+                  />
                   <circle cx="24" cy="64" r="2" fill="#DAA520" />
                   <defs>
                     <radialGradient id="lanternGlow" cx="50%" cy="40%" r="50%">
@@ -258,46 +340,136 @@ export default function GreetingRenderer({
                 </svg>
               )}
               {asset.type === "fireworks" && (
-                <svg width="48" height="48" viewBox="0 0 48 48" className="drop-shadow-lg" style={{ filter: "drop-shadow(0 0 12px rgba(255,215,0,0.7))" }}>
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 48 48"
+                  className="drop-shadow-lg"
+                  style={{
+                    filter: "drop-shadow(0 0 12px rgba(255,215,0,0.7))",
+                  }}
+                >
                   {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
-                    <line key={angle} x1="24" y1="24" x2={24 + 20 * Math.cos((angle * Math.PI) / 180)} y2={24 + 20 * Math.sin((angle * Math.PI) / 180)} stroke="#FFD700" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+                    <line
+                      key={angle}
+                      x1="24"
+                      y1="24"
+                      x2={24 + 20 * Math.cos((angle * Math.PI) / 180)}
+                      y2={24 + 20 * Math.sin((angle * Math.PI) / 180)}
+                      stroke="#FFD700"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      opacity="0.9"
+                    />
                   ))}
-                  {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map((angle) => (
-                    <circle key={angle} cx={24 + 16 * Math.cos((angle * Math.PI) / 180)} cy={24 + 16 * Math.sin((angle * Math.PI) / 180)} r="2" fill="#FF6347" />
-                  ))}
+                  {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map(
+                    (angle) => (
+                      <circle
+                        key={angle}
+                        cx={24 + 16 * Math.cos((angle * Math.PI) / 180)}
+                        cy={24 + 16 * Math.sin((angle * Math.PI) / 180)}
+                        r="2"
+                        fill="#FF6347"
+                      />
+                    ),
+                  )}
                   <circle cx="24" cy="24" r="4" fill="#FFD700" />
                 </svg>
               )}
               {asset.type === "blossom" && (
-                <svg width="44" height="44" viewBox="0 0 44 44" className="drop-shadow-lg" style={{ filter: "drop-shadow(0 0 8px rgba(255,182,193,0.6))" }}>
+                <svg
+                  width="44"
+                  height="44"
+                  viewBox="0 0 44 44"
+                  className="drop-shadow-lg"
+                  style={{
+                    filter: "drop-shadow(0 0 8px rgba(255,182,193,0.6))",
+                  }}
+                >
                   {[0, 72, 144, 216, 288].map((angle) => (
-                    <ellipse key={angle} cx={22 + 10 * Math.cos((angle * Math.PI) / 180)} cy={22 + 10 * Math.sin((angle * Math.PI) / 180)} rx="8" ry="12" fill="#FFB7C5" opacity="0.85" transform={`rotate(${angle}, ${22 + 10 * Math.cos((angle * Math.PI) / 180)}, ${22 + 10 * Math.sin((angle * Math.PI) / 180)})`} />
+                    <ellipse
+                      key={angle}
+                      cx={22 + 10 * Math.cos((angle * Math.PI) / 180)}
+                      cy={22 + 10 * Math.sin((angle * Math.PI) / 180)}
+                      rx="8"
+                      ry="12"
+                      fill="#FFB7C5"
+                      opacity="0.85"
+                      transform={`rotate(${angle}, ${22 + 10 * Math.cos((angle * Math.PI) / 180)}, ${22 + 10 * Math.sin((angle * Math.PI) / 180)})`}
+                    />
                   ))}
                   <circle cx="22" cy="22" r="5" fill="#FFD700" />
                 </svg>
               )}
               {asset.type === "knot" && (
-                <svg width="44" height="44" viewBox="0 0 44 44" className="drop-shadow-lg" style={{ filter: "drop-shadow(0 0 8px rgba(220,20,60,0.5))" }}>
-                  <path d="M22 4 C10 4 4 12 4 22 C4 32 10 40 22 40 C34 40 40 32 40 22 C40 12 34 4 22 4 Z" fill="none" stroke="#DC143C" strokeWidth="3" />
-                  <path d="M14 14 Q22 8 30 14 Q36 22 30 30 Q22 36 14 30 Q8 22 14 14 Z" fill="#DC143C" opacity="0.8" />
-                  <path d="M18 18 Q22 14 26 18 Q30 22 26 26 Q22 30 18 26 Q14 22 18 18 Z" fill="#FFD700" opacity="0.6" />
+                <svg
+                  width="44"
+                  height="44"
+                  viewBox="0 0 44 44"
+                  className="drop-shadow-lg"
+                  style={{ filter: "drop-shadow(0 0 8px rgba(220,20,60,0.5))" }}
+                >
+                  <path
+                    d="M22 4 C10 4 4 12 4 22 C4 32 10 40 22 40 C34 40 40 32 40 22 C40 12 34 4 22 4 Z"
+                    fill="none"
+                    stroke="#DC143C"
+                    strokeWidth="3"
+                  />
+                  <path
+                    d="M14 14 Q22 8 30 14 Q36 22 30 30 Q22 36 14 30 Q8 22 14 14 Z"
+                    fill="#DC143C"
+                    opacity="0.8"
+                  />
+                  <path
+                    d="M18 18 Q22 14 26 18 Q30 22 26 26 Q22 30 18 26 Q14 22 18 18 Z"
+                    fill="#FFD700"
+                    opacity="0.6"
+                  />
                 </svg>
               )}
               {asset.type === "lion-dance" && (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 via-yellow-500 to-red-600 flex items-center justify-center shadow-lg" style={{ filter: "drop-shadow(0 0 8px rgba(255,200,50,0.5))" }}>
+                <div
+                  className="w-12 h-12 rounded-full bg-linear-to-br from-red-500 via-yellow-500 to-red-600 flex items-center justify-center shadow-lg"
+                  style={{
+                    filter: "drop-shadow(0 0 8px rgba(255,200,50,0.5))",
+                  }}
+                >
                   <svg width="28" height="28" viewBox="0 0 28 28">
                     <circle cx="9" cy="10" r="3" fill="white" />
                     <circle cx="9" cy="10" r="1.5" fill="#1a1a1a" />
                     <circle cx="19" cy="10" r="3" fill="white" />
                     <circle cx="19" cy="10" r="1.5" fill="#1a1a1a" />
-                    <path d="M8 18 Q14 24 20 18" fill="none" stroke="#DAA520" strokeWidth="2" strokeLinecap="round" />
-                    <rect x="4" y="2" width="20" height="4" rx="2" fill="#DAA520" />
+                    <path
+                      d="M8 18 Q14 24 20 18"
+                      fill="none"
+                      stroke="#DAA520"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <rect
+                      x="4"
+                      y="2"
+                      width="20"
+                      height="4"
+                      rx="2"
+                      fill="#DAA520"
+                    />
                   </svg>
                 </div>
               )}
               {asset.type === "fu-badge" && (
-                <div className="w-12 h-12 rounded-sm bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center shadow-lg border-2 border-yellow-500/60 rotate-45" style={{ filter: "drop-shadow(0 0 8px rgba(255,200,50,0.5))" }}>
-                  <span className="-rotate-45 text-yellow-400 font-bold text-xl" style={{ fontFamily: "serif" }}>福</span>
+                <div
+                  className="w-12 h-12 rounded-sm bg-linear-to-br from-red-600 to-red-700 flex items-center justify-center shadow-lg border-2 border-yellow-500/60 rotate-45"
+                  style={{
+                    filter: "drop-shadow(0 0 8px rgba(255,200,50,0.5))",
+                  }}
+                >
+                  <span
+                    className="-rotate-45 text-yellow-400 font-bold text-xl"
+                    style={{ fontFamily: "serif" }}
+                  >
+                    福
+                  </span>
                 </div>
               )}
             </motion.div>
@@ -330,9 +502,7 @@ export default function GreetingRenderer({
       )}
 
       {/* Floating Wishes */}
-      {!isPreview && wishes.length > 0 && (
-        <FloatingWishes wishes={wishes} />
-      )}
+      {!isPreview && wishes.length > 0 && <FloatingWishes wishes={wishes} />}
 
       {/* Main Card */}
       <motion.div
@@ -342,12 +512,12 @@ export default function GreetingRenderer({
         variants={anim.fadeInUp}
       >
         {/* Card background with glass effect */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/80 to-white/90 backdrop-blur-xl" />
+        <div className={newLocal} />
         <div className="absolute inset-0 border border-white/30 rounded-2xl" />
 
         {/* Gold accent line at top */}
         <motion.div
-          className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent"
+          className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-yellow-400 to-transparent"
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
           transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
@@ -356,14 +526,20 @@ export default function GreetingRenderer({
         <div className="relative p-8 space-y-6">
           {/* Company logo */}
           {greeting.companyLogoUrl && !isTrial && (
-            <motion.img
-              src={greeting.companyLogoUrl}
-              alt="Company Logo"
-              className="w-16 h-16 mx-auto object-contain rounded-lg"
+            <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, type: "spring" }}
-            />
+            >
+              <Image
+                src={greeting.companyLogoUrl!}
+                alt="Company Logo"
+                width={64}
+                height={64}
+                className="w-16 h-16 mx-auto object-contain rounded-lg"
+                unoptimized
+              />
+            </motion.div>
           )}
 
           {/* Trial watermark instead of logo */}
@@ -379,7 +555,7 @@ export default function GreetingRenderer({
           )}
 
           <motion.h1
-            className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-red-600 via-red-500 to-amber-500 bg-clip-text text-transparent drop-shadow-sm"
+            className="text-4xl md:text-5xl font-bold bg-linear-to-r from-red-600 via-red-500 to-amber-500 bg-clip-text text-transparent drop-shadow-sm"
             style={{ fontFamily: config.typography?.font }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -409,11 +585,9 @@ export default function GreetingRenderer({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
           >
-            <span className="text-red-700/60 text-sm">
-              With Love,
-            </span>
+            <span className="text-red-700/60 text-sm">With Love,</span>
             <br />
-            <span className="text-2xl bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">
+            <span className="text-2xl bg-linear-to-r from-red-600 to-red-800 bg-clip-text text-transparent">
               {isPreview
                 ? greeting.senderNameDefault || "[Company Name]"
                 : greeting.senderNameDefault || "Our Family"}
@@ -442,7 +616,7 @@ export default function GreetingRenderer({
                   onClick={() => setShowDonation(true)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-5 py-2.5 rounded-full text-sm font-medium transition shadow-lg shadow-red-600/25"
+                  className="flex items-center gap-2 bg-linear-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-5 py-2.5 rounded-full text-sm font-medium transition shadow-lg shadow-red-600/25"
                 >
                   <Heart size={16} /> Send Wish
                 </motion.button>
