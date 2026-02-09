@@ -112,15 +112,8 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [darkMode, setDarkModeState] = useState<DarkMode>(() => {
-    if (typeof window === "undefined") return "system";
-    return (localStorage.getItem("darkMode") as DarkMode) || "system";
-  });
-  const [themeName, setThemeNameState] = useState<ThemeName>(() => {
-    if (typeof window === "undefined") return "seasonal";
-    const stored = localStorage.getItem("themeName") as ThemeName | null;
-    return stored && THEMES[stored] ? stored : "seasonal";
-  });
+  const [darkMode, setDarkModeState] = useState<DarkMode>("system");
+  const [themeName, setThemeNameState] = useState<ThemeName>("seasonal");
   const [isDark, setIsDark] = useState(false);
   const mountedRef = useRef(false);
   const [mounted, setMounted] = useState(false);
@@ -146,12 +139,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const logoText = `/logo/${logoColor}.png`;
   const logoTextDark = `/logo/white.png`; // Always white for dark backgrounds
 
-  // Mark as mounted after first render
+  // Hydrate state from localStorage after mount to avoid SSR mismatch
   useEffect(() => {
     if (!mountedRef.current) {
       mountedRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration detection pattern
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration: read localStorage after mount
       setMounted(true);
+
+      const storedDarkMode = localStorage.getItem("darkMode") as DarkMode;
+      if (storedDarkMode) {
+        setDarkModeState(storedDarkMode);
+      }
+      const storedThemeName = localStorage.getItem("themeName") as ThemeName | null;
+      if (storedThemeName && THEMES[storedThemeName]) {
+        setThemeNameState(storedThemeName);
+      }
     }
   }, []);
 
