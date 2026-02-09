@@ -170,7 +170,7 @@ function LoginPageInner() {
 
           <div className="mt-8 text-center">
             <p className="text-gray-600 dark:text-gray-400">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link
                 href="/register"
                 className="text-theme-primary font-bold hover:underline"

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-export function trackEvent(greetingId: string, type: string, metadata?: Record<string, any>) {
+export function trackEvent(greetingId: string, type: string, metadata?: Record<string, unknown>) {
   fetch("/api/events", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

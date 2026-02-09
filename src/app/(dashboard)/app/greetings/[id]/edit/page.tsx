@@ -53,7 +53,7 @@ export default function EditGreetingPage() {
   useEffect(() => {
     fetch(`/api/greetings/${params.id}`)
       .then((res) => res.json())
-      .then((data) => {
+      .then((data: Greeting) => {
         setGreeting(data);
         setFormData({
           title: data.title || "",

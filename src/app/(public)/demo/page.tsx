@@ -5,8 +5,27 @@ import Image from "next/image";
 import { useState } from "react";
 import AnimationToggle from "@/components/AnimationToggle";
 
+interface Particle {
+  left: number;
+  top: number;
+  yEnd: number;
+  xDrift: number;
+  duration: number;
+  delay: number;
+}
+
 export default function DemoPage() {
   const [isPlaying, setIsPlaying] = useState(true);
+  const [particles] = useState<Particle[]>(() =>
+    [...Array(15)].map(() => ({
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      yEnd: -100 - Math.random() * 100,
+      xDrift: (Math.random() - 0.5) * 50,
+      duration: 3 + Math.random() * 2,
+      delay: Math.random() * 3,
+    })),
+  );
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#8B1538] via-[#A01B43] to-[#8B1538]">
@@ -332,24 +351,24 @@ export default function DemoPage() {
       {/* Floating Particles */}
       {isPlaying && (
         <div className="absolute inset-0 z-35 pointer-events-none overflow-hidden">
-          {[...Array(15)].map((_, i) => (
+          {particles.map((p, i) => (
             <motion.div
               key={i}
               className="absolute w-2 h-2 bg-yellow-400/60 rounded-full"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
+                left: `${p.left}%`,
+                top: `${p.top}%`,
               }}
               animate={{
-                y: [-20, -100 - Math.random() * 100],
-                x: [0, (Math.random() - 0.5) * 50],
+                y: [-20, p.yEnd],
+                x: [0, p.xDrift],
                 opacity: [0, 1, 0],
                 scale: [0, 1, 0.5],
               }}
               transition={{
-                duration: 3 + Math.random() * 2,
+                duration: p.duration,
                 repeat: Infinity,
-                delay: Math.random() * 3,
+                delay: p.delay,
                 ease: "easeOut",
               }}
             />

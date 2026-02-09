@@ -49,7 +49,7 @@ export default function TemplatesPage() {
         // Check if user already has a trial greeting
         const hasTrial =
           Array.isArray(greetingsData) &&
-          greetingsData.some((g: any) => g.isTrial);
+          greetingsData.some((g: { isTrial: boolean }) => g.isTrial);
         setHasTrialGreeting(hasTrial);
         setLoading(false);
       })

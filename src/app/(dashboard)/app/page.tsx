@@ -53,12 +53,12 @@ export default function DashboardPage() {
     ])
       .then(([greetings]) => {
         const published = greetings.filter(
-          (g: any) => g.status === "published"
+          (g: { status: string }) => g.status === "published"
         );
         setStats({
           activeGreetings: published.length,
           totalViews: greetings.reduce(
-            (acc: number, g: any) => acc + (g._count?.events || 0),
+            (acc: number, g: { _count?: { events?: number } }) => acc + (g._count?.events || 0),
             0
           ),
           totalDonations: 0,

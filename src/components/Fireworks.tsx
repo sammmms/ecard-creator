@@ -35,17 +35,9 @@ export default function Fireworks({ className = "" }: { className?: string }) {
   const particles = useRef<Particle[]>([]);
   const rockets = useRef<Rocket[]>([]);
   const animRef = useRef<number>(0);
-  const [prefersReduced, setPrefersReduced] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReduced(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  if (prefersReduced) return null;
+  const [prefersReduced, setPrefersReduced] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 
   const spawnRocket = useCallback((width: number, height: number) => {
     const color = COLORS[Math.floor(Math.random() * COLORS.length)];
@@ -187,6 +179,15 @@ export default function Fireworks({ className = "" }: { className?: string }) {
       window.removeEventListener("resize", resize);
     };
   }, [spawnRocket, explode]);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  if (prefersReduced) return null;
 
   return (
     <canvas

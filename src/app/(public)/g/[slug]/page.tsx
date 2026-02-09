@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import db from "@/lib/db";
 import GreetingRenderer from "@/components/GreetingRenderer";
-import { getTemplateComponent } from "@/components/templates";
+import { TemplateRenderer } from "@/components/templates";
 import { ViewTracker } from "@/components/EventTracker";
 
 export async function generateMetadata({
@@ -157,9 +157,6 @@ export default async function PublicGreetingPage({
     };
   });
 
-  // Check if the template has a static component
-  const StaticTemplate = getTemplateComponent(greeting.template.componentSlug);
-
   const templateProps = {
     greeting: {
       id: greeting.id,
@@ -178,11 +175,12 @@ export default async function PublicGreetingPage({
     donationMode: greeting.donationMode,
   };
 
-  if (StaticTemplate) {
+  // Use static template component if available
+  if (greeting.template.componentSlug) {
     return (
       <>
         <ViewTracker greetingId={greeting.id} />
-        <StaticTemplate {...templateProps} />
+        <TemplateRenderer componentSlug={greeting.template.componentSlug} {...templateProps} />
       </>
     );
   }
@@ -192,7 +190,18 @@ export default async function PublicGreetingPage({
     <>
       <ViewTracker greetingId={greeting.id} />
       <GreetingRenderer
-        greeting={greeting as any}
+        greeting={{
+          id: greeting.id,
+          title: greeting.title || "",
+          senderNameDefault: greeting.senderNameDefault || "",
+          messageDefault: greeting.messageDefault || "",
+          companyLogoUrl: greeting.companyLogoUrl || undefined,
+          isTrial: greeting.isTrial,
+          submissionsEnabled: greeting.submissionsEnabled,
+          donationEnabled: greeting.donationEnabled,
+          donationMode: greeting.donationMode,
+          template: { configJson: greeting.template.configJson },
+        }}
         wishes={wishes}
         paymentMethods={paymentMethods}
         donationMode={greeting.donationMode}

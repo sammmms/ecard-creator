@@ -49,7 +49,7 @@ export default function PaymentSettingsPage() {
   useEffect(() => {
     fetch("/api/receiver-configs")
       .then((res) => res.json())
-      .then((configs: any[]) => {
+      .then((configs: Array<Record<string, string | null>>) => {
         const manual = configs.find((c) => c.mode === "manual");
         const platform = configs.find((c) => c.mode === "platform");
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Share2, Heart } from "lucide-react";
 import * as anim from "@/lib/animations";
@@ -40,16 +40,33 @@ interface PaymentMethodsData {
   displayName: string | null;
 }
 
+interface Asset {
+  type: string;
+  animation?: string;
+  x: number;
+  y: number;
+}
+
+interface TemplateConfig {
+  fireworks?: boolean;
+  background?: string;
+  assets?: Asset[];
+  typography?: { font?: string };
+  [key: string]: unknown;
+}
+
 // Floating sparkle particles
 function SparkleOverlay() {
-  const sparkles = Array.from({ length: 20 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 3 + 1,
-    delay: Math.random() * 5,
-    duration: Math.random() * 3 + 3,
-  }));
+  const [sparkles] = useState(() =>
+    Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      delay: Math.random() * 5,
+      duration: Math.random() * 3 + 3,
+    }))
+  );
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
@@ -93,29 +110,30 @@ export default function GreetingRenderer({
   paymentMethods?: PaymentMethodsData | null;
   donationMode?: string;
 }) {
-  const [config, setConfig] = useState<any>(null);
+  const config = useMemo<TemplateConfig | null>(() => {
+    if (greeting.template?.configJson) {
+      try {
+        return JSON.parse(greeting.template.configJson);
+      } catch (e) {
+        console.error("Invalid config JSON", e);
+        return null;
+      }
+    }
+    return null;
+  }, [greeting.template]);
   const [showDonation, setShowDonation] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [wishes, setWishes] = useState<WishData[]>(initialWishes);
-  const [prefersReduced, setPrefersReduced] = useState(false);
+  const [prefersReduced, setPrefersReduced] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReduced(mq.matches);
     const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
-
-  useEffect(() => {
-    if (greeting.template?.configJson) {
-      try {
-        setConfig(JSON.parse(greeting.template.configJson));
-      } catch (e) {
-        console.error("Invalid config JSON", e);
-      }
-    }
-  }, [greeting]);
 
   if (!config) return null;
 
@@ -195,7 +213,7 @@ export default function GreetingRenderer({
 
       {/* Assets Layer */}
       <AnimatePresence>
-        {config.assets?.map((asset: any, i: number) => {
+        {config.assets?.map((asset: Asset, i: number) => {
           let variants = {};
           if (asset.animation === "float") variants = anim.float;
           if (asset.animation === "sway") variants = anim.sway;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 // Seasonal color themes
@@ -106,9 +106,17 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [darkMode, setDarkModeState] = useState<DarkMode>("system");
-  const [themeName, setThemeNameState] = useState<ThemeName>("seasonal");
+  const [darkMode, setDarkModeState] = useState<DarkMode>(() => {
+    if (typeof window === "undefined") return "system";
+    return (localStorage.getItem("darkMode") as DarkMode) || "system";
+  });
+  const [themeName, setThemeNameState] = useState<ThemeName>(() => {
+    if (typeof window === "undefined") return "seasonal";
+    const stored = localStorage.getItem("themeName") as ThemeName | null;
+    return stored && THEMES[stored] ? stored : "seasonal";
+  });
   const [isDark, setIsDark] = useState(false);
+  const mountedRef = useRef(false);
   const [mounted, setMounted] = useState(false);
 
   // Check if we're on a public page (landing, demo, login, register, greeting pages)
@@ -132,14 +140,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const logoText = `/logo/${logoColor}.png`;
   const logoTextDark = `/logo/white.png`; // Always white for dark backgrounds
 
-  // Initialize from localStorage
+  // Mark as mounted after first render
   useEffect(() => {
-    const storedDarkMode = localStorage.getItem("darkMode") as DarkMode | null;
-    const storedTheme = localStorage.getItem("themeName") as ThemeName | null;
-
-    if (storedDarkMode) setDarkModeState(storedDarkMode);
-    if (storedTheme && THEMES[storedTheme]) setThemeNameState(storedTheme);
-    setMounted(true);
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration detection pattern
+      setMounted(true);
+    }
   }, []);
 
   // Apply dark mode
@@ -191,7 +198,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.style.setProperty("--theme-primary-hover", primaryHover);
     root.style.setProperty("--theme-accent", accent);
     root.style.setProperty("--theme-accent-hover", accentHover);
-  }, [effectiveThemeName, isDark, mounted]);
+  }, [effectiveThemeName, isDark, mounted, effectiveTheme.primary.dark, effectiveTheme.primary.light, effectiveTheme.accent.dark, effectiveTheme.accent.light]);
 
   const setDarkMode = (mode: DarkMode) => {
     setDarkModeState(mode);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -40,22 +40,20 @@ const CONFETTI_COLORS = [
 ];
 
 function ConfettiBurst({ onComplete }: { onComplete: () => void }) {
-  const pieces = useMemo(
-    () =>
-      Array.from({ length: 15 }, (_, i) => {
-        const angle = (Math.PI * 2 * i) / 15 + (Math.random() - 0.5) * 0.5;
-        const distance = 40 + Math.random() * 60;
-        return {
-          id: i,
-          x: Math.cos(angle) * distance,
-          y: Math.sin(angle) * distance - 20, // bias upward
-          color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-          size: 5 + Math.random() * 4,
-          isCircle: Math.random() > 0.5,
-          rotation: Math.random() * 360,
-        };
-      }),
-    [],
+  const [pieces] = useState(() =>
+    Array.from({ length: 15 }, (_, i) => {
+      const angle = (Math.PI * 2 * i) / 15 + (Math.random() - 0.5) * 0.5;
+      const distance = 40 + Math.random() * 60;
+      return {
+        id: i,
+        x: Math.cos(angle) * distance,
+        y: Math.sin(angle) * distance - 20, // bias upward
+        color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+        size: 5 + Math.random() * 4,
+        isCircle: Math.random() > 0.5,
+        rotation: Math.random() * 360,
+      };
+    })
   );
 
   return (

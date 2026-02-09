@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Share2, Heart } from "lucide-react";
 import type { TemplateProps } from "@/types/template";
@@ -10,17 +10,15 @@ import FloatingWishes from "@/components/FloatingWishes";
 
 // Gold sparkle particles — random positions, fading in/out, floating upward
 function GoldSparkleOverlay() {
-  const sparkles = useMemo(
-    () =>
-      Array.from({ length: 24 }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 3 + 1,
-        delay: Math.random() * 5,
-        duration: Math.random() * 3 + 3,
-      })),
-    [],
+  const [sparkles] = useState(() =>
+    Array.from({ length: 24 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      delay: Math.random() * 5,
+      duration: Math.random() * 3 + 3,
+    })),
   );
 
   return (
@@ -56,19 +54,16 @@ function GoldSparkleOverlay() {
 function GoldParticleShower() {
   const GOLD_COLORS = ["#FFD700", "#DAA520", "#B8860B"];
 
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 25 }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        size: Math.random() * 4 + 4, // w-1 (4px) to w-2 (8px)
-        color: GOLD_COLORS[i % GOLD_COLORS.length],
-        delay: Math.random() * 8,
-        duration: Math.random() * 6 + 6,
-        swayAmount: (Math.random() - 0.5) * 60,
-      })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+  const [particles] = useState(() =>
+    Array.from({ length: 25 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      size: Math.random() * 4 + 4, // w-1 (4px) to w-2 (8px)
+      color: GOLD_COLORS[i % GOLD_COLORS.length],
+      delay: Math.random() * 8,
+      duration: Math.random() * 6 + 6,
+      swayAmount: (Math.random() - 0.5) * 60,
+    })),
   );
 
   return (
