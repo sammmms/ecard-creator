@@ -46,12 +46,12 @@ export default function SettingsDropdown() {
   }, []);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative w-full" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-3 px-4 py-2 w-full text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+        className="flex items-center gap-2.5 px-3 py-1.5 w-full text-[11px] font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
       >
-        <Settings size={18} />
+        <Settings size={14} />
         Preferences
       </button>
 
@@ -62,14 +62,14 @@ export default function SettingsDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden z-50 max-h-[70vh] overflow-y-auto"
+            className="absolute bottom-full left-0 mb-2 w-60 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden z-50 max-h-[70vh] overflow-y-auto"
           >
             {/* Dark Mode Section */}
             <div className="p-3 border-b border-gray-100 dark:border-gray-800">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+              <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2.5 px-0.5">
                 Appearance
               </p>
-              <div className="flex gap-1">
+              <div className="flex gap-1.5">
                 {darkModeOptions.map((opt) => {
                   const Icon = opt.icon;
                   const isActive = darkMode === opt.value;
@@ -77,13 +77,13 @@ export default function SettingsDropdown() {
                     <button
                       key={opt.value}
                       onClick={() => setDarkMode(opt.value)}
-                      className={`flex-1 flex flex-col items-center gap-1 py-2 px-2 rounded-lg text-xs transition-colors ${
+                      className={`flex-1 flex flex-col items-center gap-1.5 py-2 px-1.5 rounded-lg text-[10px] transition-colors ${
                         isActive
                           ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
                           : "text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50"
                       }`}
                     >
-                      <Icon size={16} />
+                      <Icon size={14} />
                       {opt.label}
                     </button>
                   );
@@ -93,8 +93,8 @@ export default function SettingsDropdown() {
 
             {/* Theme Color Section */}
             <div className="p-3">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
-                <Palette size={12} /> Theme Color
+              <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2.5 px-0.5 flex items-center gap-1">
+                <Palette size={10} /> Theme Color
               </p>
               <div className="space-y-1">
                 {(Object.keys(THEMES) as ThemeName[]).map((key) => {
@@ -110,29 +110,29 @@ export default function SettingsDropdown() {
                     <button
                       key={key}
                       onClick={() => setThemeName(key)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                      className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[11px] transition-colors ${
                         isActive
                           ? "bg-gray-100 dark:bg-gray-800"
                           : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
                       }`}
                     >
                       {isAuto ? (
-                        <Sparkles size={18} className="text-theme-accent" />
+                        <Sparkles size={12} className="text-theme-accent" />
                       ) : (
                         <div
-                          className={`w-5 h-5 rounded-full bg-gradient-to-br ${displayGradient}`}
+                          className={`w-3.5 h-3.5 rounded-full bg-gradient-to-br ${displayGradient}`}
                         />
                       )}
-                      <span className="flex-1 text-left">
+                      <span className="flex-1 text-left truncate">
                         {theme.name}
                         {isAuto && isActive && (
-                          <span className="text-xs text-gray-400 ml-1">
+                          <span className="text-[9px] text-gray-400 ml-1">
                             ({THEMES[effectiveThemeName].name})
                           </span>
                         )}
                       </span>
                       {isActive && (
-                        <Check size={14} className="text-green-500" />
+                        <Check size={12} className="text-green-500" />
                       )}
                     </button>
                   );

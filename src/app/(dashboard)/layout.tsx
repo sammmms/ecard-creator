@@ -53,9 +53,6 @@ export default function DashboardLayout({
               className="h-5 object-contain"
             />
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {session?.user?.name || "Company Portal"}
-          </p>
         </motion.div>
 
         <nav className="flex-1 px-4 space-y-1">
@@ -105,12 +102,22 @@ export default function DashboardLayout({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
+          {/* User Profile Label moved to bottom */}
+          <div className="px-3 py-2 mb-2">
+            <p className="text-xs font-medium text-gray-900 dark:text-gray-200 truncate">
+              {session?.user?.name || "Company Portal"}
+            </p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+              {session?.user?.email || "user@example.com"}
+            </p>
+          </div>
+
           <SettingsDropdown />
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex items-center gap-3 px-4 py-2 w-full text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="flex items-center gap-2.5 px-3 py-1.5 w-full text-[11px] font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
-            <LogOut size={18} />
+            <LogOut size={14} />
             Sign Out
           </button>
         </motion.div>

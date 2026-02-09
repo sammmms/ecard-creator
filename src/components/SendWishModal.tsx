@@ -204,7 +204,7 @@ export default function SendWishModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="p-5 space-y-4"
+                    className="p-5 space-y-4 text-left"
                   >
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -280,11 +280,23 @@ export default function SendWishModal({
                                     Rp
                                   </span>
                                   <input
-                                    type="number"
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={
+                                      amount
+                                        ? parseInt(amount, 10).toLocaleString(
+                                            "id-ID",
+                                          )
+                                        : ""
+                                    }
+                                    onChange={(e) => {
+                                      const raw = e.target.value.replace(
+                                        /\D/g,
+                                        "",
+                                      );
+                                      setAmount(raw);
+                                    }}
                                     placeholder="50,000"
-                                    min="1000"
                                     className="flex-1 p-2.5 text-sm outline-none"
                                   />
                                 </div>

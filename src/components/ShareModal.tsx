@@ -35,6 +35,7 @@ export default function ShareModal({
 }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [igCopied, setIgCopied] = useState(false);
 
   // Sharing URLs
   const encodedUrl = encodeURIComponent(url);
@@ -75,12 +76,10 @@ export default function ShareModal({
       name: "Instagram",
       icon: Instagram,
       color: "bg-pink-600",
-      // Instagram doesn't have a direct web share link for posts. We'll copy link and notify.
       action: () => {
         navigator.clipboard.writeText(url);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-        // In a real app, maybe show a toast "Link copied! Open Instagram to paste."
+        setIgCopied(true);
+        setTimeout(() => setIgCopied(false), 3000);
       },
     },
   ];
@@ -142,6 +141,20 @@ export default function ShareModal({
                   </button>
                 ))}
               </div>
+
+              {/* Instagram copy feedback */}
+              <AnimatePresence>
+                {igCopied && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className="bg-pink-50 text-pink-700 text-xs text-center px-3 py-2 rounded-lg border border-pink-200"
+                  >
+                    Link copied! Paste it in your Instagram Story or bio.
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* QR Code Toggle */}
               <button
