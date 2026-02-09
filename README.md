@@ -24,6 +24,23 @@ A Next.js fullstack application for generating and sharing animated Chinese New 
 
 - Node.js 18+
 - npm
+- Git
+
+### Cloning the Repository
+
+**Via SSH:**
+
+```bash
+git clone git@github.com:your-org/ecard-bizapps.git
+cd ecard-bizapps
+```
+
+**Via HTTPS:**
+
+```bash
+git clone https://github.com/your-org/ecard-bizapps.git
+cd ecard-bizapps
+```
 
 ### Installation
 
@@ -33,28 +50,57 @@ A Next.js fullstack application for generating and sharing animated Chinese New 
     npm install
     ```
 
-2.  **Initialize Database**:
+2.  **Set up environment variables**:
+
+    Create a `.env` file in the project root (or copy from `.env.example` if available):
 
     ```bash
+    NEXTAUTH_URL=http://localhost:3000
+    NEXTAUTH_SECRET=your_secret_key_here
+    ```
+
+    > **Note**: For local development, any secret key will work. For production, use a strong, randomly generated secret.
+
+3.  **Initialize the Database**:
+
+    The project uses **SQLite** as the database, managed by Prisma. The database file (`app.db`) is stored in the `data/` directory.
+
+    ```bash
+    # Create the database and apply schema
     npx prisma db push
-    npm run seed  # Seeding is optional but recommended for templates
-    # OR
+
+    # Seed the database with demo user and templates (recommended)
     npx tsx prisma/seed.ts
     ```
 
-3.  **Run Development Server**:
+    > **How `app.db` is created**: When you run `npx prisma db push`, Prisma reads the schema from `prisma/schema.prisma` and creates the SQLite database file at `data/app.db`. This file contains all your application data.
+
+4.  **Run Development Server**:
 
     ```bash
     npm run dev
     ```
 
-4.  **Open Browser**:
+5.  **Open Browser**:
     Visit [http://localhost:3000](http://localhost:3000)
 
 ### Default Credentials
 
+After seeding, you can log in with:
+
 - **Email**: `demo@company.com`
 - **Password**: `password123`
+
+### Quick Start (TL;DR)
+
+```bash
+git clone git@github.com:your-org/ecard-bizapps.git
+cd ecard-bizapps
+npm install
+npx prisma db push
+npx tsx prisma/seed.ts
+npm run dev
+```
 
 ## Usage Guide
 
