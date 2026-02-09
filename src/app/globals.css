@@ -1,8 +1,33 @@
 @import "tailwindcss";
 
+/* Use class-based dark mode (ThemeProvider adds .dark to <html>) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+
+  /* Theme colors - defaults (will be overridden by ThemeProvider) */
+  --theme-primary: #dc2626;
+  --theme-primary-hover: #b91c1c;
+  --theme-accent: #f59e0b;
+  --theme-accent-hover: #d97706;
+}
+
+.dark {
+  --background: #050505;
+  --foreground: #f0f0f0;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(0, 0, 0, 0.3);
+
+  --theme-primary: #ef4444;
+  --theme-primary-hover: #dc2626;
+  --theme-accent: #fbbf24;
+  --theme-accent-hover: #f59e0b;
 }
 
 @theme inline {
@@ -10,17 +35,231 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
+  --font-outfit: var(--font-outfit);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Theme color tokens for Tailwind */
+  --color-primary: var(--theme-primary);
+  --color-primary-hover: var(--theme-primary-hover);
+  --color-accent: var(--theme-accent);
+  --color-accent-hover: var(--theme-accent-hover);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* Form elements inherit app font */
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+input,
+textarea,
+select {
+  font-size: 0.875rem; /* 14px — matches text-sm for consistency */
+  line-height: 1.5;
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(209, 213, 219, 0.3);
+}
+
+.dark .glass-card {
+  background: rgba(10, 10, 15, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================
+   THEME-AWARE UTILITY CLASSES
+   ============================================ */
+
+/* Text colors */
+.text-theme-primary {
+  color: var(--theme-primary);
+}
+
+.text-theme-accent {
+  color: var(--theme-accent);
+}
+
+/* Background colors */
+.bg-theme-primary {
+  background-color: var(--theme-primary);
+}
+
+.bg-theme-primary-hover:hover {
+  background-color: var(--theme-primary-hover);
+}
+
+.bg-theme-accent {
+  background-color: var(--theme-accent);
+}
+
+/* Border colors */
+.border-theme-primary {
+  border-color: var(--theme-primary);
+}
+
+/* Theme gradients */
+.text-theme-gradient {
+  background: linear-gradient(
+    to right,
+    var(--theme-primary),
+    var(--theme-accent)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bg-theme-gradient {
+  background: linear-gradient(
+    to right,
+    var(--theme-primary),
+    var(--theme-accent)
+  );
+}
+
+/* Soft theme backgrounds (10% opacity) */
+.bg-theme-soft {
+  background-color: color-mix(in srgb, var(--theme-primary) 10%, transparent);
+}
+.dark .bg-theme-soft {
+  background-color: color-mix(in srgb, var(--theme-primary) 20%, transparent);
+}
+
+/* Focus rings */
+.focus-theme:focus,
+.focus-theme:focus-within {
+  --tw-ring-color: color-mix(in srgb, var(--theme-primary) 20%, transparent);
+  border-color: var(--theme-primary);
+}
+
+/* Theme buttons */
+.btn-theme {
+  background-color: var(--theme-primary);
+  color: white;
+  transition: all 0.2s ease;
+}
+.btn-theme:hover {
+  background-color: var(--theme-primary-hover);
+}
+
+/* Theme shadow */
+.shadow-theme {
+  box-shadow:
+    0 10px 15px -3px color-mix(in srgb, var(--theme-primary) 25%, transparent),
+    0 4px 6px -4px color-mix(in srgb, var(--theme-primary) 25%, transparent);
+}
+
+/* Checkbox/toggle theme */
+.peer:checked ~ .toggle-theme {
+  background-color: var(--theme-primary);
+}
+
+/* Ring theme */
+.ring-theme {
+  --tw-ring-color: color-mix(in srgb, var(--theme-primary) 20%, transparent);
+}
+
+/* Hover text */
+.hover\:text-theme-primary:hover {
+  color: var(--theme-primary);
+}
+
+.hover\:border-theme-primary:hover {
+  border-color: var(--theme-primary);
+}
+
+/* Theme badge */
+.badge-theme {
+  background-color: color-mix(in srgb, var(--theme-primary) 10%, transparent);
+  color: var(--theme-primary);
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent);
+}
+.dark .badge-theme {
+  background-color: color-mix(in srgb, var(--theme-primary) 15%, transparent);
+  border-color: color-mix(in srgb, var(--theme-primary) 30%, transparent);
+}
+
+/* Input focus theme */
+input:focus.input-theme,
+textarea:focus.input-theme,
+select:focus.input-theme {
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--theme-primary) 20%, transparent);
+}
+
+/* Loader theme */
+.loader-theme {
+  color: var(--theme-primary);
+}
+
+/* Link theme */
+.link-theme {
+  color: var(--theme-primary);
+}
+.link-theme:hover {
+  color: var(--theme-primary-hover);
+}
+
+/* Toggle/switch theme */
+.peer:checked ~ .toggle-bg-theme {
+  background-color: var(--theme-primary);
+}
+
+/* Input focus using CSS variables */
+.input-focus-theme:focus {
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary) 20%, transparent);
+  outline: none;
+}
+
+/* Error/alert theming */
+.alert-error {
+  background-color: color-mix(in srgb, var(--theme-primary) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 15%, transparent);
+  color: var(--theme-primary);
+}
+.dark .alert-error {
+  background-color: color-mix(in srgb, var(--theme-primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--theme-primary) 25%, transparent);
+}
+
+/* Tab indicator theme */
+.tab-indicator-theme {
+  background-color: var(--theme-primary);
+}
+
+/* Button outline theme */
+.btn-outline-theme {
+  border: 1px solid var(--theme-primary);
+  color: var(--theme-primary);
+  transition: all 0.2s ease;
+}
+.btn-outline-theme:hover {
+  background-color: var(--theme-primary);
+  color: white;
 }

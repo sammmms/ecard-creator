@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./../data/app.db"
+}
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  passwordHash    String?
+  companyName     String?
+  createdAt       DateTime @default(now())
+  
+  greetings       Greeting[]
+  receiverConfigs ReceiverConfig[]
+  payments        Payment[]
+}
+
+model Template {
+  id              String   @id @default(cuid())
+  event           String   @default("cny")
+  name            String
+  price           Int      @default(0)
+  previewImageUrl String?
+  configJson      String   // Stores JSON string of template config
+  isActive        Boolean  @default(true)
+  isTrial         Boolean  @default(false)
+
+  greetings       Greeting[]
+}
+
+model Greeting {
+  id                String   @id @default(cuid())
+  userId            String
+  templateId        String
+  slug              String   @unique
+  title             String?
+  senderNameDefault String?
+  messageDefault    String?
+  companyLogoUrl    String?
+  layoutVariant     String?
+  submissionsEnabled Boolean @default(false)
+  donationEnabled   Boolean  @default(false)
+  donationMode      String   @default("none") // "none", "manual", "platform"
+  isTrial           Boolean  @default(false)
+  status            String   @default("draft") // "draft", "pending_payment", "published"
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation(fields: [userId], references: [id])
+  template          Template @relation(fields: [templateId], references: [id])
+  payment           Payment? // One-to-one for generation payment
+  donationPayments  DonationPayment[]
+  events            Event[]
+  publicSubmissions PublicSubmission[]
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  userId      String
+  greetingId  String   @unique
+  amount      Int
+  currency    String   @default("IDR")
+  provider    String   @default("xendit")
+  status      String   @default("pending") // "pending", "paid", "failed", "expired"
+  externalRef String?
+  checkoutUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id])
+  greeting    Greeting @relation(fields: [greetingId], references: [id])
+}
+
+model ReceiverConfig {
+  id               String   @id @default(cuid())
+  userId           String
+  mode             String   // "manual", "platform"
+  status           String   @default("inactive") // "active", "inactive"
+  
+  // Manual fields
+  displayName      String?
+  qrisImageUrl     String?
+  instructionsText String?
+  ewalletType      String?
+  ewalletNumber    String?
+  
+  // Platform fields
+  noticeText       String?
+
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+model DonationPayment {
+  id          String   @id @default(cuid())
+  greetingId  String
+  amount      Int
+  currency    String   @default("IDR")
+  status      String   @default("pending")
+  provider    String   @default("xendit")
+  externalRef String?
+  checkoutUrl String?
+  donorName   String?
+  donorMessage String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  greeting    Greeting @relation(fields: [greetingId], references: [id])
+}
+
+model Event {
+  id           String   @id @default(cuid())
+  greetingId   String
+  type         String   // view, share_copy_link, etc.
+  metadataJson String?
+  createdAt    DateTime @default(now())
+
+  greeting     Greeting @relation(fields: [greetingId], references: [id])
+}
+
+model PublicSubmission {
+  id         String   @id @default(cuid())
+  greetingId String
+  name       String?
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  greeting   Greeting @relation(fields: [greetingId], references: [id])
+}
