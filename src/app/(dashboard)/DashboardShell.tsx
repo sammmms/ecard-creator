@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   FileImage,
   Layers,
+  BarChart3,
   Settings,
   LogOut,
   Menu,
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/app", label: "Overview", icon: LayoutDashboard },
   { href: "/app/templates", label: "Templates", icon: FileImage },
   { href: "/app/greetings", label: "My Greetings", icon: Layers },
+  { href: "/app/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/app/settings/payments", label: "Settings", icon: Settings },
 ];
 

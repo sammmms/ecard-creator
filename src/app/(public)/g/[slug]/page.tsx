@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Link from "next/link";
 import db from "@/lib/db";
 import GreetingRenderer from "@/components/GreetingRenderer";
 import { getTemplateComponent } from "@/components/templates";
+import { ViewTracker } from "@/components/EventTracker";
 
 export async function generateMetadata({
   params,
@@ -75,6 +77,29 @@ export default async function PublicGreetingPage({
   });
 
   if (!greeting) return notFound();
+
+  // Check if trial greeting has expired
+  if (greeting.isTrial && greeting.trialExpiresAt && new Date(greeting.trialExpiresAt) < new Date()) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-950 via-gray-950 to-gray-900 p-4">
+        <div className="glass-card max-w-md w-full rounded-2xl p-8 text-center space-y-4">
+          <div className="text-4xl mb-2">&#9201;</div>
+          <h1 className="text-2xl font-bold text-white">
+            This trial greeting has expired
+          </h1>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            The trial period for this greeting has ended. Contact the sender for more information.
+          </p>
+          <Link
+            href="/app/templates"
+            className="inline-block mt-4 px-6 py-2.5 rounded-lg btn-theme text-white font-bold text-sm transition-colors"
+          >
+            Create your own greeting
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   // Fetch receiver configs for the greeting owner (for donation payment methods)
   let paymentMethods: {
@@ -154,16 +179,24 @@ export default async function PublicGreetingPage({
   };
 
   if (StaticTemplate) {
-    return <StaticTemplate {...templateProps} />;
+    return (
+      <>
+        <ViewTracker greetingId={greeting.id} />
+        <StaticTemplate {...templateProps} />
+      </>
+    );
   }
 
   // Fallback to existing GreetingRenderer
   return (
-    <GreetingRenderer
-      greeting={greeting as any}
-      wishes={wishes}
-      paymentMethods={paymentMethods}
-      donationMode={greeting.donationMode}
-    />
+    <>
+      <ViewTracker greetingId={greeting.id} />
+      <GreetingRenderer
+        greeting={greeting as any}
+        wishes={wishes}
+        paymentMethods={paymentMethods}
+        donationMode={greeting.donationMode}
+      />
+    </>
   );
 }

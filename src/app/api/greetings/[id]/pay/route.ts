@@ -34,7 +34,7 @@ export async function POST(
 
     // Create payment record
     // Mock Xendit Invoice creation
-    const externalRef = `INV-${Date.now()}`;
+    const externalRef = `INV-${crypto.randomUUID()}`;
     const amount = greeting.template.price;
     const checkoutUrl = `https://checkout.xendit.co/web/${externalRef}`; // Mock URL
 

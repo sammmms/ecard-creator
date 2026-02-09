@@ -47,6 +47,7 @@ model Greeting {
   donationEnabled   Boolean  @default(false)
   donationMode      String   @default("none") // "none", "manual", "platform"
   isTrial           Boolean  @default(false)
+  trialExpiresAt    DateTime?
   status            String   @default("draft") // "draft", "pending_payment", "published"
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

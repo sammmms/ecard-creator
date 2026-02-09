@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Demo — Happy Chinese New Year",
+  title: "Bizapps - Happy Chinese New Year",
   description:
-    "Experience a live animated Chinese New Year greeting card demo. See fireworks, lanterns, and festive decorations come to life.",
+    "Celebrate the Lunar New Year with Bizapps. Experience our interactive Chinese New Year greeting.",
   openGraph: {
-    title: "Happy Chinese New Year — Live Demo",
+    title: "Happy Chinese New Year — Bizapps",
     description:
-      "Experience a live animated Chinese New Year greeting card. Fireworks, lanterns, and festive decorations come to life.",
+      "Celebrate the Lunar New Year with Bizapps. Experience our interactive Chinese New Year greeting.",
     type: "website",
-    images: ["/demo/2.png"],
+    images: ["/demo/og.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Happy Chinese New Year — Live Demo",
+    title: "Happy Chinese New Year — Bizapps",
     description:
-      "Experience a live animated Chinese New Year greeting card demo.",
-    images: ["/demo/2.png"],
+      "Celebrate the Lunar New Year with Bizapps. Experience our interactive Chinese New Year greeting.",
+    images: ["/demo/og.png"],
   },
 };
 

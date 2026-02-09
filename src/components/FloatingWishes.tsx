@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 
@@ -37,7 +38,47 @@ const AVATAR_GRADIENTS = [
 ];
 
 export default function FloatingWishes({ wishes }: { wishes: Wish[] }) {
+  const [prefersReduced, setPrefersReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   if (!wishes || wishes.length === 0) return null;
+
+  // Show a static list at the bottom-left when reduced motion is preferred
+  if (prefersReduced) {
+    const staticWishes = wishes.slice(0, 5);
+    return (
+      <div className="fixed bottom-4 left-4 z-20 space-y-2 max-w-[280px]">
+        {staticWishes.map((wish) => {
+          if (!wish.name && !wish.comment) return null;
+          const hash = hashCode(wish.id);
+          const gradient = AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length];
+          const initial = wish.name?.[0]?.toUpperCase() || null;
+          return (
+            <div key={wish.id} className="flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full pl-1.5 pr-4 py-1.5 shadow-lg shadow-black/[0.08] border border-white/70">
+              <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 shadow-sm`}>
+                {initial ? (
+                  <span className="text-[11px] font-bold text-white leading-none">{initial}</span>
+                ) : (
+                  <Heart size={12} className="text-white" fill="currentColor" />
+                )}
+              </div>
+              <div className="min-w-0 overflow-hidden">
+                {wish.name && <p className="text-[11px] font-semibold text-gray-800 truncate leading-tight">{wish.name}</p>}
+                {wish.comment && <p className="text-[11px] text-gray-500 truncate leading-tight">{wish.comment}</p>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
 
   const visibleWishes = wishes.slice(0, 15);
 

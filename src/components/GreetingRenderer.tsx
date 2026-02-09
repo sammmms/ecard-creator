@@ -97,6 +97,15 @@ export default function GreetingRenderer({
   const [showDonation, setShowDonation] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [wishes, setWishes] = useState<WishData[]>(initialWishes);
+  const [prefersReduced, setPrefersReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   useEffect(() => {
     if (greeting.template?.configJson) {
@@ -111,7 +120,7 @@ export default function GreetingRenderer({
   if (!config) return null;
 
   const isTrial = greeting.isTrial === true;
-  const showFireworks = config.fireworks !== false;
+  const showFireworks = config.fireworks !== false && !prefersReduced;
   const effectiveDonationMode = donationMode || greeting.donationMode || "none";
   const showSendWish =
     (greeting.submissionsEnabled || greeting.donationEnabled) && !isTrial;
@@ -120,32 +129,43 @@ export default function GreetingRenderer({
     <div className="relative min-h-screen w-full overflow-hidden text-center flex flex-col items-center justify-center font-sans">
       {/* Animated red gradient background */}
       <div className="absolute inset-0 -z-30">
-        <motion.div
-          className="absolute inset-0"
-          style={{
-            background: "linear-gradient(135deg, #8B0000 0%, #DC143C 25%, #B22222 50%, #FF4500 75%, #8B0000 100%)",
-            backgroundSize: "400% 400%",
-          }}
-          animate={{
-            backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
+        {prefersReduced ? (
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(135deg, #8B0000 0%, #DC143C 50%, #B22222 100%)",
+            }}
+          />
+        ) : (
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(135deg, #8B0000 0%, #DC143C 25%, #B22222 50%, #FF4500 75%, #8B0000 100%)",
+              backgroundSize: "400% 400%",
+            }}
+            animate={{
+              backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
+            }}
+            transition={{
+              duration: 12,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        )}
       </div>
 
       {/* Radial glow pulses */}
-      <motion.div
-        className="absolute inset-0 -z-25"
-        animate={{ opacity: [0.3, 0.6, 0.3] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        style={{
-          background: "radial-gradient(ellipse at 30% 20%, rgba(255,215,0,0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(255,69,0,0.1) 0%, transparent 50%)",
-        }}
-      />
+      {!prefersReduced && (
+        <motion.div
+          className="absolute inset-0 -z-25"
+          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            background: "radial-gradient(ellipse at 30% 20%, rgba(255,215,0,0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(255,69,0,0.1) 0%, transparent 50%)",
+          }}
+        />
+      )}
 
       {/* Background image if provided */}
       {config.background && (
@@ -164,7 +184,7 @@ export default function GreetingRenderer({
       />
 
       {/* Sparkle particles */}
-      <SparkleOverlay />
+      {!prefersReduced && <SparkleOverlay />}
 
       {/* Fireworks canvas */}
       {showFireworks && (
@@ -198,23 +218,70 @@ export default function GreetingRenderer({
               }}
               transition={{ delay: i * 0.3, duration: 0.6 }}
             >
-              <div
-                className={`text-5xl drop-shadow-lg ${
-                  asset.type === "fireworks"
-                    ? "text-yellow-400"
-                    : "text-red-400"
-                }`}
-                style={{
-                  filter: "drop-shadow(0 0 8px rgba(255,200,50,0.5))",
-                }}
-              >
-                {asset.type === "lantern" && "\ud83c\udfee"}
-                {asset.type === "fireworks" && "\ud83d\udca5"}
-                {asset.type === "lion-dance" && "\ud83e\udd81"}
-                {asset.type === "knot" && "\ud83e\udde7"}
-                {asset.type === "blossom" && "\ud83c\udf38"}
-                {asset.type === "fu-badge" && "\ud83c\udde8\ud83c\uddf3"}
-              </div>
+              {asset.type === "lantern" && (
+                <svg width="48" height="64" viewBox="0 0 48 64" className="drop-shadow-lg" style={{ filter: "drop-shadow(0 0 10px rgba(255,50,50,0.6))" }}>
+                  <rect x="18" y="0" width="12" height="6" rx="1" fill="#DAA520" />
+                  <line x1="24" y1="6" x2="24" y2="12" stroke="#DAA520" strokeWidth="2" />
+                  <ellipse cx="24" cy="36" rx="18" ry="24" fill="#DC143C" />
+                  <ellipse cx="24" cy="36" rx="18" ry="24" fill="url(#lanternGlow)" />
+                  <rect x="8" y="14" width="32" height="4" rx="2" fill="#DAA520" />
+                  <rect x="8" y="54" width="32" height="4" rx="2" fill="#DAA520" />
+                  <line x1="14" y1="18" x2="14" y2="54" stroke="#DAA520" strokeWidth="1" opacity="0.4" />
+                  <line x1="24" y1="18" x2="24" y2="54" stroke="#DAA520" strokeWidth="1" opacity="0.4" />
+                  <line x1="34" y1="18" x2="34" y2="54" stroke="#DAA520" strokeWidth="1" opacity="0.4" />
+                  <line x1="24" y1="58" x2="24" y2="64" stroke="#DAA520" strokeWidth="2" />
+                  <circle cx="24" cy="64" r="2" fill="#DAA520" />
+                  <defs>
+                    <radialGradient id="lanternGlow" cx="50%" cy="40%" r="50%">
+                      <stop offset="0%" stopColor="#FF6B35" stopOpacity="0.6" />
+                      <stop offset="100%" stopColor="#DC143C" stopOpacity="0" />
+                    </radialGradient>
+                  </defs>
+                </svg>
+              )}
+              {asset.type === "fireworks" && (
+                <svg width="48" height="48" viewBox="0 0 48 48" className="drop-shadow-lg" style={{ filter: "drop-shadow(0 0 12px rgba(255,215,0,0.7))" }}>
+                  {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
+                    <line key={angle} x1="24" y1="24" x2={24 + 20 * Math.cos((angle * Math.PI) / 180)} y2={24 + 20 * Math.sin((angle * Math.PI) / 180)} stroke="#FFD700" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+                  ))}
+                  {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map((angle) => (
+                    <circle key={angle} cx={24 + 16 * Math.cos((angle * Math.PI) / 180)} cy={24 + 16 * Math.sin((angle * Math.PI) / 180)} r="2" fill="#FF6347" />
+                  ))}
+                  <circle cx="24" cy="24" r="4" fill="#FFD700" />
+                </svg>
+              )}
+              {asset.type === "blossom" && (
+                <svg width="44" height="44" viewBox="0 0 44 44" className="drop-shadow-lg" style={{ filter: "drop-shadow(0 0 8px rgba(255,182,193,0.6))" }}>
+                  {[0, 72, 144, 216, 288].map((angle) => (
+                    <ellipse key={angle} cx={22 + 10 * Math.cos((angle * Math.PI) / 180)} cy={22 + 10 * Math.sin((angle * Math.PI) / 180)} rx="8" ry="12" fill="#FFB7C5" opacity="0.85" transform={`rotate(${angle}, ${22 + 10 * Math.cos((angle * Math.PI) / 180)}, ${22 + 10 * Math.sin((angle * Math.PI) / 180)})`} />
+                  ))}
+                  <circle cx="22" cy="22" r="5" fill="#FFD700" />
+                </svg>
+              )}
+              {asset.type === "knot" && (
+                <svg width="44" height="44" viewBox="0 0 44 44" className="drop-shadow-lg" style={{ filter: "drop-shadow(0 0 8px rgba(220,20,60,0.5))" }}>
+                  <path d="M22 4 C10 4 4 12 4 22 C4 32 10 40 22 40 C34 40 40 32 40 22 C40 12 34 4 22 4 Z" fill="none" stroke="#DC143C" strokeWidth="3" />
+                  <path d="M14 14 Q22 8 30 14 Q36 22 30 30 Q22 36 14 30 Q8 22 14 14 Z" fill="#DC143C" opacity="0.8" />
+                  <path d="M18 18 Q22 14 26 18 Q30 22 26 26 Q22 30 18 26 Q14 22 18 18 Z" fill="#FFD700" opacity="0.6" />
+                </svg>
+              )}
+              {asset.type === "lion-dance" && (
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 via-yellow-500 to-red-600 flex items-center justify-center shadow-lg" style={{ filter: "drop-shadow(0 0 8px rgba(255,200,50,0.5))" }}>
+                  <svg width="28" height="28" viewBox="0 0 28 28">
+                    <circle cx="9" cy="10" r="3" fill="white" />
+                    <circle cx="9" cy="10" r="1.5" fill="#1a1a1a" />
+                    <circle cx="19" cy="10" r="3" fill="white" />
+                    <circle cx="19" cy="10" r="1.5" fill="#1a1a1a" />
+                    <path d="M8 18 Q14 24 20 18" fill="none" stroke="#DAA520" strokeWidth="2" strokeLinecap="round" />
+                    <rect x="4" y="2" width="20" height="4" rx="2" fill="#DAA520" />
+                  </svg>
+                </div>
+              )}
+              {asset.type === "fu-badge" && (
+                <div className="w-12 h-12 rounded-sm bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center shadow-lg border-2 border-yellow-500/60 rotate-45" style={{ filter: "drop-shadow(0 0 8px rgba(255,200,50,0.5))" }}>
+                  <span className="-rotate-45 text-yellow-400 font-bold text-xl" style={{ fontFamily: "serif" }}>福</span>
+                </div>
+              )}
             </motion.div>
           );
         })}
@@ -397,6 +464,8 @@ export default function GreetingRenderer({
         onClose={() => setShowShare(false)}
         url={typeof window !== "undefined" ? window.location.href : ""}
         title={greeting.title}
+        isTrial={greeting.isTrial === true}
+        greetingId={greeting.id}
       />
     </div>
   );

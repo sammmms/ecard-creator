@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 
 interface Particle {
   x: number;
@@ -35,6 +35,17 @@ export default function Fireworks({ className = "" }: { className?: string }) {
   const particles = useRef<Particle[]>([]);
   const rockets = useRef<Rocket[]>([]);
   const animRef = useRef<number>(0);
+  const [prefersReduced, setPrefersReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  if (prefersReduced) return null;
 
   const spawnRocket = useCallback((width: number, height: number) => {
     const color = COLORS[Math.floor(Math.random() * COLORS.length)];

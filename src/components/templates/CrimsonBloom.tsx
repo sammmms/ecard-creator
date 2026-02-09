@@ -332,6 +332,8 @@ export default function CrimsonBloom({
         onClose={() => setShowShare(false)}
         url={typeof window !== "undefined" ? window.location.href : ""}
         title={greeting.title}
+        isTrial={greeting.isTrial === true}
+        greetingId={greeting.id}
       />
     </div>
   );

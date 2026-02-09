@@ -65,14 +65,17 @@ export async function POST(req: Request) {
     // Generate a unique slug
     const slug = nanoid(10);
 
+    const isTrial = template.isTrial;
+
     const greeting = await db.greeting.create({
       data: {
         userId: session.user.id,
         templateId,
         slug,
         title: `CNY Greeting - ${template.name}`,
-        isTrial: template.isTrial,
-        status: template.isTrial ? "published" : "draft",
+        isTrial,
+        trialExpiresAt: isTrial ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : undefined,
+        status: isTrial ? "published" : "draft",
       },
     });
 

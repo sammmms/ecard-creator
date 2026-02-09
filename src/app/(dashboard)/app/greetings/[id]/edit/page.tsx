@@ -11,6 +11,7 @@ import {
   Eye,
   Upload,
   Trash2,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import Select from "@/components/Select";
@@ -31,6 +32,7 @@ interface Greeting {
   donationEnabled: boolean;
   donationMode: string;
   isTrial: boolean;
+  trialExpiresAt: string | null;
   slug: string;
 }
 
@@ -181,6 +183,39 @@ export default function EditGreetingPage() {
             </button>
           </motion.div>
         )}
+
+        {/* Trial expiry countdown */}
+        {isTrial && greeting.trialExpiresAt && (() => {
+          const expiresAt = new Date(greeting.trialExpiresAt);
+          const now = new Date();
+          const diffMs = expiresAt.getTime() - now.getTime();
+          const isExpired = diffMs <= 0;
+          const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+          return (
+            <motion.div
+              variants={anim.fadeInUp}
+              className={`border rounded-xl p-4 text-sm flex items-center gap-3 ${
+                isExpired
+                  ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300"
+                  : daysLeft <= 2
+                    ? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-300"
+                    : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300"
+              }`}
+            >
+              <Clock size={16} className="shrink-0" />
+              <span>
+                {isExpired ? (
+                  <><strong>Trial expired.</strong> This greeting is no longer visible to the public. Upgrade to restore access.</>
+                ) : daysLeft === 1 ? (
+                  <><strong>Trial expires tomorrow.</strong> After expiry, the public link will stop working.</>
+                ) : (
+                  <><strong>Trial expires in {daysLeft} days.</strong> After expiry, the public link will stop working.</>
+                )}
+              </span>
+            </motion.div>
+          );
+        })()}
 
         <motion.form
           onSubmit={handleSubmit}
