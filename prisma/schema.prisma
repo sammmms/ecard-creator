@@ -13,10 +13,11 @@ model User {
   passwordHash    String?
   companyName     String?
   createdAt       DateTime @default(now())
-  
+
   greetings       Greeting[]
   receiverConfigs ReceiverConfig[]
   payments        Payment[]
+  notifications   Notification[]
 }
 
 model Template {
@@ -28,7 +29,6 @@ model Template {
   configJson      String   // Stores JSON string of template config
   componentSlug   String?  // Maps to a static frontend template component
   isActive        Boolean  @default(true)
-  isTrial         Boolean  @default(false)
   category        String?
   description     String?
   premiumPrice    Int?
@@ -51,6 +51,9 @@ model Greeting {
   donationMode      String   @default("none") // "none", "manual", "platform"
   isTrial           Boolean  @default(false)
   trialExpiresAt    DateTime?
+  musicTrackId      String?
+  viewCount         Int      @default(0)
+  maxFreeViews      Int      @default(75)
   status            String   @default("draft") // "draft", "pending_payment", "published"
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -61,6 +64,7 @@ model Greeting {
   donationPayments  DonationPayment[]
   events            Event[]
   publicSubmissions PublicSubmission[]
+  greetingViews     GreetingView[]
 }
 
 model Payment {
@@ -131,7 +135,31 @@ model PublicSubmission {
   greetingId String
   name       String?
   comment    String?
+  imageUrl   String?
   createdAt  DateTime @default(now())
 
   greeting   Greeting @relation(fields: [greetingId], references: [id])
+}
+
+model GreetingView {
+  id         String   @id @default(cuid())
+  greetingId String
+  ipAddress  String
+  viewedAt   DateTime @default(now())
+
+  greeting   Greeting @relation(fields: [greetingId], references: [id], onDelete: Cascade)
+
+  @@unique([greetingId, ipAddress])
+}
+
+model Notification {
+  id           String   @id @default(cuid())
+  userId       String
+  message      String
+  redirectLink String?
+  type         String   @default("info")
+  isRead       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id])
 }
