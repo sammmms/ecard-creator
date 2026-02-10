@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import useSWR from "swr";
 import {
   motion,
@@ -9,6 +9,7 @@ import {
   useTransform,
   animate,
 } from "framer-motion";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { fetcher } from "@/lib/fetcher";
 import {
   Layers,
@@ -63,8 +64,8 @@ export default function DashboardPage() {
       slug: string;
       status: string;
       createdAt: string;
+      viewCount?: number;
       _count?: {
-        events?: number;
         publicSubmissions?: number;
         donationPayments?: number;
       };
@@ -83,6 +84,15 @@ export default function DashboardPage() {
     setWishesModal({ isOpen: true, greetingId: id, greetingTitle: title });
   };
 
+  const handleEscape = useCallback(() => {
+    if (wishesModal.isOpen) {
+      setWishesModal({ isOpen: false, greetingId: "", greetingTitle: "" });
+    } else if (showAllWishes) {
+      setShowAllWishes(false);
+    }
+  }, [wishesModal.isOpen, showAllWishes]);
+  useEscapeKey(handleEscape, showAllWishes || wishesModal.isOpen);
+
   const greetingsWithWishes = greetings.filter(
     (g) => (g._count?.publicSubmissions || 0) > 0,
   );
@@ -90,7 +100,7 @@ export default function DashboardPage() {
   const published = greetings.filter((g) => g.status === "published");
   const stats: Stats = {
     activeGreetings: published.length,
-    totalViews: greetings.reduce((acc, g) => acc + (g._count?.events || 0), 0),
+    totalViews: greetings.reduce((acc, g) => acc + (g.viewCount || 0), 0),
     totalWishes: greetings.reduce(
       (acc, g) => acc + (g._count?.publicSubmissions || 0),
       0,

@@ -12,6 +12,7 @@ interface GreetingStat {
   views: number;
   shares: number;
   wishes: number;
+  maxFreeViews: number;
 }
 
 export default function PerGreetingStats({ stats }: { stats: GreetingStat[] }) {
@@ -80,7 +81,12 @@ export default function PerGreetingStats({ stats }: { stats: GreetingStat[] }) {
                     </span>
                   </td>
                   <td className="px-5 py-3 text-right font-medium">
-                    {g.views}
+                    <span>{g.views}</span>
+                    {g.isTrial && (
+                      <div className="text-[10px] text-gray-400 font-normal">
+                        {g.views}/{g.maxFreeViews} free
+                      </div>
+                    )}
                   </td>
                   <td className="px-5 py-3 text-right font-medium">
                     {g.shares}
@@ -125,6 +131,9 @@ export default function PerGreetingStats({ stats }: { stats: GreetingStat[] }) {
               <div className="text-center">
                 <p className="text-lg font-bold">{g.views}</p>
                 <p className="text-[10px] text-gray-400 uppercase">Views</p>
+                {g.isTrial && (
+                  <p className="text-[10px] text-gray-400">{g.views}/{g.maxFreeViews} free</p>
+                )}
               </div>
               <div className="text-center">
                 <p className="text-lg font-bold">{g.shares}</p>

@@ -17,7 +17,6 @@ export default async function AnalyticsPage() {
     publishedCount,
     draftCount,
     trialCount,
-    totalViews,
     totalShares,
     totalWishes,
     donationAggregate,
@@ -35,14 +34,6 @@ export default async function AnalyticsPage() {
 
     // Trial count
     db.greeting.count({ where: { userId, isTrial: true } }),
-
-    // Total page views
-    db.event.count({
-      where: {
-        type: "view",
-        greeting: { userId },
-      },
-    }),
 
     // Total shares (any event type containing "share")
     db.event.count({
@@ -82,7 +73,7 @@ export default async function AnalyticsPage() {
       },
     }),
 
-    // Per-greeting stats
+    // Per-greeting stats (viewCount = IP-deduplicated unique visitors)
     db.greeting.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -92,9 +83,10 @@ export default async function AnalyticsPage() {
         slug: true,
         status: true,
         isTrial: true,
+        viewCount: true,
+        maxFreeViews: true,
         _count: {
           select: {
-            events: true,
             publicSubmissions: true,
           },
         },
@@ -104,30 +96,21 @@ export default async function AnalyticsPage() {
 
   const totalDonations = donationAggregate._sum.amount || 0;
 
-  // Build per-greeting view/share counts
-  // We need individual counts per greeting, so let's get them
+  // Total views = sum of IP-deduplicated viewCount across all greetings
+  const totalViews = greetingsWithStats.reduce((sum, g) => sum + g.viewCount, 0);
+
+  // Build per-greeting share counts
   const greetingIds = greetingsWithStats.map((g) => g.id);
 
-  const [viewCounts, shareCounts] = await Promise.all([
-    db.event.groupBy({
-      by: ["greetingId"],
-      where: {
-        greetingId: { in: greetingIds },
-        type: "view",
-      },
-      _count: true,
-    }),
-    db.event.groupBy({
-      by: ["greetingId"],
-      where: {
-        greetingId: { in: greetingIds },
-        type: { contains: "share" },
-      },
-      _count: true,
-    }),
-  ]);
+  const shareCounts = await db.event.groupBy({
+    by: ["greetingId"],
+    where: {
+      greetingId: { in: greetingIds },
+      type: { contains: "share" },
+    },
+    _count: true,
+  });
 
-  const viewMap = new Map(viewCounts.map((v) => [v.greetingId, v._count]));
   const shareMap = new Map(shareCounts.map((s) => [s.greetingId, s._count]));
 
   const perGreetingStats = greetingsWithStats.map((g) => ({
@@ -136,9 +119,10 @@ export default async function AnalyticsPage() {
     slug: g.slug,
     status: g.status,
     isTrial: g.isTrial,
-    views: viewMap.get(g.id) || 0,
+    views: g.viewCount,
     shares: shareMap.get(g.id) || 0,
     wishes: g._count.publicSubmissions,
+    maxFreeViews: g.maxFreeViews,
   }));
 
   // Format currency
