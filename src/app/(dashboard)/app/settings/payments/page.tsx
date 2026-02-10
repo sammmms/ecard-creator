@@ -16,6 +16,7 @@ import {
 import * as anim from "@/lib/animations";
 import Shimmer, { FormFieldSkeleton } from "@/components/Shimmer";
 import ToggleSwitch from "@/components/ToggleSwitch";
+import MaintenanceModal from "@/components/MaintenanceModal";
 import toast from "react-hot-toast";
 
 interface QrisEntry {
@@ -25,6 +26,7 @@ interface QrisEntry {
 
 export default function PaymentSettingsPage() {
   const [activeTab, setActiveTab] = useState<"manual" | "platform">("manual");
+  const [showMaintenance, setShowMaintenance] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -232,14 +234,13 @@ export default function PaymentSettingsPage() {
             Manual Transfer (QR)
           </button>
           <button
-            onClick={() => setActiveTab("platform")}
-            className={`flex-1 py-4 text-center font-medium transition-colors relative z-10 ${
-              activeTab === "platform"
-                ? "text-theme-primary"
-                : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-            }`}
+            onClick={() => setShowMaintenance(true)}
+            className="flex-1 py-4 text-center font-medium transition-colors relative z-10 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
           >
             Platform (Xendit)
+            <span className="ml-2 inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+              Maintenance
+            </span>
           </button>
           <motion.div
             className="absolute bottom-0 h-0.5 tab-indicator-theme"
@@ -525,6 +526,10 @@ export default function PaymentSettingsPage() {
           </motion.div>
         </div>
       </motion.div>
+      <MaintenanceModal
+        isOpen={showMaintenance}
+        onClose={() => setShowMaintenance(false)}
+      />
     </motion.div>
   );
 }
