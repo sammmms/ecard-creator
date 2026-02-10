@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(bytes);
     await writeFile(path.join(UPLOAD_DIR, filename), buffer);
 
-    return NextResponse.json({ url: `/uploads/${filename}` });
+    return NextResponse.json({ url: `/api/uploads/${filename}` });
   } catch (error) {
     console.error("[UPLOAD_POST]", error);
     return new NextResponse("Upload failed", { status: 500 });
@@ -61,13 +61,15 @@ export async function DELETE(req: Request) {
     if (
       !url ||
       typeof url !== "string" ||
-      !url.startsWith("/uploads/") ||
+      (!url.startsWith("/uploads/") && !url.startsWith("/api/uploads/")) ||
       !url.includes(session.user.id)
     ) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 
-    const filePath = path.join(process.cwd(), "public", url);
+    // Handle both /uploads/filename and /api/uploads/filename formats
+    const filename = url.replace(/^\/api\/uploads\//, "/uploads/");
+    const filePath = path.join(process.cwd(), "public", filename);
     await unlink(filePath).catch(() => {});
 
     return NextResponse.json({ ok: true });
