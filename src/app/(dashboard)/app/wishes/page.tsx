@@ -188,7 +188,7 @@ function WishesPageInner() {
 
       {/* Wishes Tab */}
       {activeTab === 0 && (
-        <motion.div variants={anim.fadeInUp}>
+        <motion.div key="wishes-tab" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
           {wishesLoading ? (
             <div className="glass-card rounded-xl p-8 flex justify-center">
               <Loader2 size={28} className="animate-spin text-gray-400" />
@@ -292,7 +292,7 @@ function WishesPageInner() {
 
       {/* Donations Tab */}
       {activeTab === 1 && (
-        <motion.div variants={anim.fadeInUp}>
+        <motion.div key="donations-tab" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
           {donationsLoading ? (
             <div className="glass-card rounded-xl p-8 flex justify-center">
               <Loader2 size={28} className="animate-spin text-gray-400" />

@@ -39,6 +39,12 @@ import { MUSIC_TRACKS, getTrackById } from "@/lib/music";
 import { useSlugCheck } from "@/hooks/useSlugCheck";
 import { GreetingStatus } from "@/lib/constants";
 
+function getDaysRemaining(expiresAt: string | null): number | null {
+  if (!expiresAt) return null;
+  const diff = new Date(expiresAt).getTime() - new Date().getTime();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
+
 interface Greeting {
   id: string;
   title: string;
@@ -296,6 +302,9 @@ export default function EditGreetingPage() {
     );
   if (!greeting) return <div>Greeting not found</div>;
 
+  // Compute days remaining for expiry display (via formatExpiry helper)
+  const daysRemaining = getDaysRemaining(greeting.expiresAt);
+
   // Build greeting data for the preview template
   const previewGreeting = {
     id: greeting.id,
@@ -534,7 +543,7 @@ export default function EditGreetingPage() {
                   </p>
                 ) : (
                   <p className="text-[11px] text-gray-400">
-                    {Math.max(0, Math.ceil((new Date(greeting.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} days remaining
+                    {daysRemaining} days remaining
                   </p>
                 )}
                 <button

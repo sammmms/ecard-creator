@@ -58,6 +58,7 @@ export const authOptions: NextAuthOptions = {
         });
         if (!dbUser) {
           // User no longer exists — return empty session
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           session.user = undefined as any;
           return session;
         }

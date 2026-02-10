@@ -121,7 +121,7 @@ export async function POST(
       isGreetingExpired(existing) &&
       isSlugReclaimable(existing.expiresAt)
     ) {
-      await handleSlugReclaim(existing.id, slug);
+      await handleSlugReclaim(existing.id);
       // Now assign to this greeting
       await db.greeting.update({ where: { id }, data: { slug } });
       return NextResponse.json({ ok: true, slug, reclaimed: true });
