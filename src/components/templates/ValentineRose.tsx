@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { TemplateProps } from "@/types/template";
 import { useGreetingPage } from "@/components/GreetingPageWrapper";
+import InlineEditable from "@/components/InlineEditable";
 
 // --- Color Schemes ---
 const COLOR_SCHEMES = {
@@ -250,6 +251,9 @@ function CupidArrowAccent({ color }: { color: string }) {
 export default function ValentineRose({
   greeting,
   isPreview = false,
+  isEditing = false,
+  onFieldChange,
+  onLogoClick,
 }: TemplateProps) {
   const { isPlaying, openUpgradeModal } = useGreetingPage();
   const isTrial = greeting.isTrial === true;
@@ -258,7 +262,7 @@ export default function ValentineRose({
   const scheme = COLOR_SCHEMES[variant] || COLOR_SCHEMES.red;
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden text-center flex flex-col items-center justify-center font-sans">
+    <div className={`relative w-full overflow-hidden text-center flex flex-col items-center justify-center font-sans ${isEditing ? "min-h-full" : "min-h-screen"}`}>
       {/* Animated gradient background */}
       <div className="absolute inset-0 -z-30">
         <motion.div
@@ -424,24 +428,7 @@ export default function ValentineRose({
         />
 
         <div className="relative p-8 space-y-6">
-          {greeting.companyLogoUrl && !isTrial && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3, type: "spring" }}
-            >
-              <Image
-                src={greeting.companyLogoUrl!}
-                alt="Company Logo"
-                width={64}
-                height={64}
-                className="w-16 h-16 mx-auto object-contain rounded-lg"
-                unoptimized
-              />
-            </motion.div>
-          )}
-
-          {isTrial && (
+          {isTrial ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -450,19 +437,72 @@ export default function ValentineRose({
             >
               Powered by E-Card Greeting
             </motion.div>
-          )}
+          ) : isEditing ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, type: "spring" }}
+              onClick={onLogoClick}
+              className="cursor-pointer group"
+            >
+              {greeting.companyLogoUrl ? (
+                <div className="relative w-16 h-16 mx-auto">
+                  <Image
+                    src={greeting.companyLogoUrl}
+                    alt="Company Logo"
+                    width={64}
+                    height={64}
+                    className="w-16 h-16 object-contain rounded-lg"
+                    unoptimized
+                  />
+                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-[10px] font-medium">Change</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-16 h-16 mx-auto border-2 border-dashed border-gray-400/40 rounded-lg flex flex-col items-center justify-center hover:border-gray-400/70 transition-colors">
+                  <span className="text-gray-400/60 text-lg leading-none">+</span>
+                  <span className="text-gray-400/50 text-[9px] mt-0.5">Logo</span>
+                </div>
+              )}
+            </motion.div>
+          ) : greeting.companyLogoUrl ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, type: "spring" }}
+            >
+              <Image
+                src={greeting.companyLogoUrl}
+                alt="Company Logo"
+                width={64}
+                height={64}
+                className="w-16 h-16 mx-auto object-contain rounded-lg"
+                unoptimized
+              />
+            </motion.div>
+          ) : null}
 
           <HeartDivider scheme={scheme} />
 
           <motion.h1
-            className={`text-4xl md:text-5xl font-bold bg-linear-to-r ${scheme.titleGradient} bg-clip-text text-transparent drop-shadow-sm`}
+            className={`text-4xl md:text-5xl font-bold drop-shadow-sm ${isEditing ? scheme.subtitleColor : `bg-linear-to-r ${scheme.titleGradient} bg-clip-text text-transparent`}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            {isPreview
-              ? greeting.title || "[Your Greeting Title]"
-              : greeting.title}
+            {isEditing ? (
+              <InlineEditable
+                value={greeting.title}
+                onChange={(v) => onFieldChange?.("title", v)}
+                placeholder="Add your greeting title"
+                className={`text-4xl md:text-5xl font-bold bg-linear-to-r ${scheme.titleGradient} bg-clip-text text-transparent`}
+              />
+            ) : isPreview ? (
+              greeting.title || "Add your greeting title"
+            ) : (
+              greeting.title
+            )}
           </motion.h1>
 
           {/* Cupid arrow accent */}
@@ -480,11 +520,21 @@ export default function ValentineRose({
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.5 }}
           >
-            {isPreview
-              ? greeting.messageDefault ||
-                "[Your greeting message will appear here.\nWrite something warm and heartfelt!]"
-              : greeting.messageDefault ||
-                "You are the reason my heart smiles. Happy Valentine's Day!"}
+            {isEditing ? (
+              <InlineEditable
+                value={greeting.messageDefault}
+                onChange={(v) => onFieldChange?.("messageDefault", v)}
+                placeholder="Write your greeting message here..."
+                className={`text-lg md:text-xl leading-relaxed ${scheme.textColor}`}
+                multiline
+              />
+            ) : isPreview ? (
+              greeting.messageDefault ||
+              "Write your greeting message here..."
+            ) : (
+              greeting.messageDefault ||
+              "You are the reason my heart smiles. Happy Valentine's Day!"
+            )}
           </motion.p>
 
           <HeartDivider scheme={scheme} />
@@ -500,11 +550,20 @@ export default function ValentineRose({
             </span>
             <br />
             <span
-              className={`text-2xl bg-linear-to-r ${scheme.senderGradient} bg-clip-text text-transparent`}
+              className={`text-2xl ${isEditing ? scheme.subtitleColor : `bg-linear-to-r ${scheme.senderGradient} bg-clip-text text-transparent`}`}
             >
-              {isPreview
-                ? greeting.senderNameDefault || "[Company Name]"
-                : greeting.senderNameDefault || "With All My Heart"}
+              {isEditing ? (
+                <InlineEditable
+                  value={greeting.senderNameDefault}
+                  onChange={(v) => onFieldChange?.("senderNameDefault", v)}
+                  placeholder="Your company name"
+                  className={`text-2xl bg-linear-to-r ${scheme.senderGradient} bg-clip-text text-transparent`}
+                />
+              ) : isPreview ? (
+                greeting.senderNameDefault || "Your company name"
+              ) : (
+                greeting.senderNameDefault || "With All My Heart"
+              )}
             </span>
           </motion.div>
         </div>

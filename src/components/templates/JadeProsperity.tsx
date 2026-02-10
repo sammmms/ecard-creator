@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import type { TemplateProps } from "@/types/template";
 import { useGreetingPage } from "@/components/GreetingPageWrapper";
+import InlineEditable from "@/components/InlineEditable";
 
 // ---------- Floating jade decorative elements ----------
 const JADE_SHAPES = Array.from({ length: 12 }, (_, i) => {
@@ -57,12 +58,15 @@ function FloatingJadeElements() {
 export default function JadeProsperity({
   greeting,
   isPreview = false,
+  isEditing = false,
+  onFieldChange,
+  onLogoClick,
 }: TemplateProps) {
   const { isPlaying, openUpgradeModal } = useGreetingPage();
   const isTrial = greeting.isTrial === true;
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden text-center flex flex-col items-center justify-center font-sans">
+    <div className={`relative w-full overflow-hidden text-center flex flex-col items-center justify-center font-sans ${isEditing ? "min-h-full" : "min-h-screen"}`}>
       {/* ========== Background: animated emerald gradient ========== */}
       <div className="absolute inset-0 -z-30">
         <motion.div
@@ -166,25 +170,7 @@ export default function JadeProsperity({
         {/* Card content */}
         <div className="relative p-8 md:p-10 space-y-6">
           {/* Company logo */}
-          {greeting.companyLogoUrl && !isTrial && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3, type: "spring" }}
-            >
-              <Image
-                src={greeting.companyLogoUrl!}
-                alt="Company Logo"
-                width={64}
-                height={64}
-                className="w-16 h-16 mx-auto object-contain rounded-lg"
-                unoptimized
-              />
-            </motion.div>
-          )}
-
-          {/* Trial watermark instead of logo */}
-          {isTrial && (
+          {isTrial ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -193,21 +179,74 @@ export default function JadeProsperity({
             >
               Powered by E-Card Greeting
             </motion.div>
-          )}
+          ) : isEditing ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, type: "spring" }}
+              onClick={onLogoClick}
+              className="cursor-pointer group"
+            >
+              {greeting.companyLogoUrl ? (
+                <div className="relative w-16 h-16 mx-auto">
+                  <Image
+                    src={greeting.companyLogoUrl}
+                    alt="Company Logo"
+                    width={64}
+                    height={64}
+                    className="w-16 h-16 object-contain rounded-lg"
+                    unoptimized
+                  />
+                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-[10px] font-medium">Change</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-16 h-16 mx-auto border-2 border-dashed border-emerald-400/40 rounded-lg flex flex-col items-center justify-center hover:border-emerald-400/70 transition-colors">
+                  <span className="text-emerald-400/60 text-lg leading-none">+</span>
+                  <span className="text-emerald-400/50 text-[9px] mt-0.5">Logo</span>
+                </div>
+              )}
+            </motion.div>
+          ) : greeting.companyLogoUrl ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, type: "spring" }}
+            >
+              <Image
+                src={greeting.companyLogoUrl}
+                alt="Company Logo"
+                width={64}
+                height={64}
+                className="w-16 h-16 mx-auto object-contain rounded-lg"
+                unoptimized
+              />
+            </motion.div>
+          ) : null}
 
           {/* Gold horizontal divider */}
           <div className="w-full h-px bg-emerald-400/30" />
 
           {/* Title */}
           <motion.h1
-            className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-300 bg-clip-text text-transparent"
+            className={`text-4xl md:text-5xl font-bold ${isEditing ? "text-emerald-400/50" : "bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-300 bg-clip-text text-transparent"}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            {isPreview
-              ? greeting.title || "[Your Greeting Title]"
-              : greeting.title}
+            {isEditing ? (
+              <InlineEditable
+                value={greeting.title}
+                onChange={(v) => onFieldChange?.("title", v)}
+                placeholder="Add your greeting title"
+                className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-300 bg-clip-text text-transparent"
+              />
+            ) : isPreview ? (
+              greeting.title || "Add your greeting title"
+            ) : (
+              greeting.title
+            )}
           </motion.h1>
 
           {/* Message */}
@@ -217,11 +256,21 @@ export default function JadeProsperity({
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.5 }}
           >
-            {isPreview
-              ? greeting.messageDefault ||
-                "[Your greeting message will appear here. Write something warm and heartfelt!]"
-              : greeting.messageDefault ||
-                "Wishing you abundance and prosperity in the coming year!"}
+            {isEditing ? (
+              <InlineEditable
+                value={greeting.messageDefault}
+                onChange={(v) => onFieldChange?.("messageDefault", v)}
+                placeholder="Write your greeting message here..."
+                className="text-lg md:text-xl leading-relaxed text-emerald-100"
+                multiline
+              />
+            ) : isPreview ? (
+              greeting.messageDefault ||
+              "Write your greeting message here..."
+            ) : (
+              greeting.messageDefault ||
+              "Wishing you abundance and prosperity in the coming year!"
+            )}
           </motion.p>
 
           {/* Gold horizontal divider */}
@@ -236,10 +285,19 @@ export default function JadeProsperity({
           >
             <span className="text-emerald-400/60 text-sm">With Love,</span>
             <br />
-            <span className="text-2xl tracking-wider bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-300 bg-clip-text text-transparent">
-              {isPreview
-                ? greeting.senderNameDefault || "[Company Name]"
-                : greeting.senderNameDefault || "Our Family"}
+            <span className={`text-2xl tracking-wider ${isEditing ? "text-emerald-400/50" : "bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-300 bg-clip-text text-transparent"}`}>
+              {isEditing ? (
+                <InlineEditable
+                  value={greeting.senderNameDefault}
+                  onChange={(v) => onFieldChange?.("senderNameDefault", v)}
+                  placeholder="Your company name"
+                  className="text-2xl bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-300 bg-clip-text text-transparent"
+                />
+              ) : isPreview ? (
+                greeting.senderNameDefault || "Your company name"
+              ) : (
+                greeting.senderNameDefault || "Our Family"
+              )}
             </span>
           </motion.div>
 

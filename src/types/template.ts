@@ -13,4 +13,7 @@ export interface TemplateProps {
     layoutVariant?: string;
   };
   isPreview?: boolean;
+  isEditing?: boolean;
+  onFieldChange?: (field: string, value: string) => void;
+  onLogoClick?: () => void;
 }
