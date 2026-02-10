@@ -59,20 +59,28 @@ async function ensureDemoGreeting() {
 }
 
 export default async function DemoPage() {
+  let greetingId = "";
+  let wishes: Array<{
+    id: string;
+    name: string | null;
+    comment: string | null;
+    createdAt: string;
+    donationAmount: number | null;
+  }> = [];
+
   try {
     const greeting = await ensureDemoGreeting();
-
-    const wishes = greeting.publicSubmissions.map((sub) => ({
+    greetingId = greeting.id;
+    wishes = greeting.publicSubmissions.map((sub) => ({
       id: sub.id,
       name: sub.name,
       comment: sub.comment,
       createdAt: sub.createdAt.toISOString(),
       donationAmount: null as number | null,
     }));
-
-    return <DemoClient greetingId={greeting.id} initialWishes={wishes} />;
   } catch (error) {
     console.error("[DEMO_PAGE]", error);
-    return <DemoClient greetingId="" initialWishes={[]} />;
   }
+
+  return <DemoClient greetingId={greetingId} initialWishes={wishes} />;
 }

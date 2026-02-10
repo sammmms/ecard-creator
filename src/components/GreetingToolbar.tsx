@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Share2, Heart, Pause, Play } from "lucide-react";
 import ShareModal from "@/components/ShareModal";
@@ -58,9 +58,9 @@ export default function GreetingToolbar({
   const isPlaying = externalIsPlaying ?? internalIsPlaying;
   const setIsPlaying = onPlayingChange ?? setInternalIsPlaying;
 
-  useEffect(() => {
+  if (!shareUrl && typeof window !== "undefined") {
     setShareUrl(window.location.href);
-  }, []);
+  }
 
   const isTrial = greeting.isTrial === true;
   const effectiveDonationMode = donationMode || greeting.donationMode || "none";

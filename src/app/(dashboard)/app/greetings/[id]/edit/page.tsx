@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { useRouter, useParams } from "next/navigation";
@@ -54,30 +54,28 @@ export default function EditGreetingPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [formData, setFormData] = useState<Partial<Greeting>>({});
-  const [formInit, setFormInit] = useState(false);
+  const [formInitId, setFormInitId] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeTrigger, setUpgradeTrigger] = useState("");
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const isTrial = greeting?.isTrial === true;
 
-  // Initialize form data once greeting loads
-  useEffect(() => {
-    if (greeting && !formInit) {
-      const isValentine = greeting.template?.componentSlug === "valentine-rose";
-      setFormData({
-        title: greeting.title || "",
-        senderNameDefault: greeting.senderNameDefault || "",
-        messageDefault: greeting.messageDefault || "",
-        companyLogoUrl: greeting.companyLogoUrl || "",
-        layoutVariant: greeting.layoutVariant || (isValentine ? "red" : "A"),
-        submissionsEnabled: greeting.submissionsEnabled || false,
-        donationEnabled: greeting.donationEnabled || false,
-        donationMode: greeting.donationMode || "none",
-      });
-      setFormInit(true);
-    }
-  }, [greeting, formInit]);
+  // Initialize form data once greeting loads (render-time adjustment)
+  if (greeting && formInitId !== greeting.id) {
+    const isValentine = greeting.template?.componentSlug === "valentine-rose";
+    setFormData({
+      title: greeting.title || "",
+      senderNameDefault: greeting.senderNameDefault || "",
+      messageDefault: greeting.messageDefault || "",
+      companyLogoUrl: greeting.companyLogoUrl || "",
+      layoutVariant: greeting.layoutVariant || (isValentine ? "red" : "A"),
+      submissionsEnabled: greeting.submissionsEnabled || false,
+      donationEnabled: greeting.donationEnabled || false,
+      donationMode: greeting.donationMode || "none",
+    });
+    setFormInitId(greeting.id);
+  }
 
   const handleUpgradeTrigger = (trigger: string) => {
     setUpgradeTrigger(trigger);

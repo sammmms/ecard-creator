@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, MessageCircle, Loader2, Heart } from "lucide-react";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import Button from "@/components/Button";
 import * as anim from "@/lib/animations";
 
@@ -52,24 +53,10 @@ export default function WishesModal({
   greetingId,
   greetingTitle,
 }: WishesModalProps) {
-  const [wishes, setWishes] = useState<WishData[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!isOpen || !greetingId) return;
-
-    setLoading(true);
-    fetch(`/api/greetings/${greetingId}/wishes`)
-      .then((res) => res.json())
-      .then((data) => {
-        setWishes(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setWishes([]);
-        setLoading(false);
-      });
-  }, [isOpen, greetingId]);
+  const { data: wishes = [], isLoading: loading } = useSWR<WishData[]>(
+    isOpen && greetingId ? `/api/greetings/${greetingId}/wishes` : null,
+    fetcher,
+  );
 
   return (
     <AnimatePresence>

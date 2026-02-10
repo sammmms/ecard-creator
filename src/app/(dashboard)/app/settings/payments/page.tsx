@@ -48,7 +48,7 @@ export default function PaymentSettingsPage() {
   });
 
   // Load existing configs
-  const { isLoading: configsLoading } = useSWR<Array<Record<string, string | null>>>(
+  useSWR<Array<Record<string, string | null>>>(
     "/api/receiver-configs",
     fetcher,
     {
