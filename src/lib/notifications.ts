@@ -4,7 +4,7 @@ interface CreateNotificationParams {
   userId: string;
   message: string;
   redirectLink?: string;
-  type?: "info" | "warning" | "view_limit_reached" | "system";
+  type?: "info" | "warning" | "view_limit_reached" | "slug_reclaimed" | "system";
 }
 
 export async function createNotification(params: CreateNotificationParams) {

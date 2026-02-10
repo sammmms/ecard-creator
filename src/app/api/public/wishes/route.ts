@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
+import { DonationStatus } from "@/lib/constants";
 
 export async function POST(req: Request) {
   try {
@@ -44,9 +45,12 @@ export async function POST(req: Request) {
       donationPayment = await db.donationPayment.create({
         data: {
           greetingId,
+          submissionId: submission.id,
           amount: Math.round(donationAmount),
           currency: "IDR",
-          status: "pending",
+          status: DonationStatus.PENDING,
+          // TODO: When integrating Xendit for platform donations,
+          // create a Xendit invoice here and store externalRef/checkoutUrl
           provider: greeting.donationMode === "manual" ? "manual" : "xendit",
           donorName: name?.trim() || null,
           donorMessage: comment?.trim() || null,
