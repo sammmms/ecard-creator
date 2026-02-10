@@ -102,7 +102,9 @@ export default function DashboardShell({
 
         <SettingsDropdown />
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() =>
+            signOut({ callbackUrl: `${window.location.origin}/login` })
+          }
           className="flex items-center gap-2 md:gap-2.5 px-2.5 md:px-3 py-1 md:py-1.5 w-full text-[10px] md:text-[11px] font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
         >
           <LogOut size={12} className="md:hidden" />
@@ -117,7 +119,12 @@ export default function DashboardShell({
     <div className="min-h-screen flex bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100">
       {/* ── Mobile top bar ── */}
       <div className="fixed top-0 left-0 right-0 z-30 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 h-14 flex items-center px-4 md:hidden">
-        <Button variant="icon" size="md" onClick={() => setSidebarOpen(true)} aria-label="Open menu">
+        <Button
+          variant="icon"
+          size="md"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Open menu"
+        >
           <Menu size={20} />
         </Button>
         <div className="flex items-center gap-2 ml-3">
@@ -177,7 +184,12 @@ export default function DashboardShell({
                     className="h-5 object-contain"
                   />
                 </div>
-                <Button variant="icon" size="md" onClick={() => setSidebarOpen(false)} aria-label="Close menu">
+                <Button
+                  variant="icon"
+                  size="md"
+                  onClick={() => setSidebarOpen(false)}
+                  aria-label="Close menu"
+                >
                   <X size={20} />
                 </Button>
               </div>
