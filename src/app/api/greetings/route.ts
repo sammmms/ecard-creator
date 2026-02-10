@@ -3,6 +3,7 @@ import db from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { nanoid } from "nanoid";
+import { GreetingStatus } from "@/lib/constants";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -17,7 +18,7 @@ export async function GET() {
     },
     include: {
       template: true,
-      payment: true,
+      payments: true,
       _count: {
         select: {
           publicSubmissions: true,
@@ -87,7 +88,7 @@ export async function POST(req: Request) {
         submissionsEnabled: true,
         isTrial,
         trialExpiresAt: isTrial ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : undefined,
-        status: isTrial ? "published" : "draft",
+        status: isTrial ? GreetingStatus.PUBLISHED : GreetingStatus.DRAFT,
       },
     });
 

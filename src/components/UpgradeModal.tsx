@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Check, X, Sparkles, CreditCard } from "lucide-react";
+import { Zap, Check, X, CreditCard } from "lucide-react";
 import Button from "@/components/Button";
 import { useRouter } from "next/navigation";
 import * as anim from "@/lib/animations";
@@ -14,14 +15,16 @@ interface UpgradeModalProps {
   trigger?: string;
   greetingId?: string;
   templatePrice?: number | null;
+  viewCount?: number;
+  maxFreeViews?: number;
 }
 
 const FEATURES = [
+  "Unlimited public views (no cap)",
   "Custom company logo & branding",
-  "Shareable links without watermark",
+  "Shareable link without limits",
   "Digital Wishes (donation) feature",
-  "Access to all premium templates",
-  "WhatsApp & QR sharing",
+  "Custom URL & extended expiry",
 ];
 
 export default function UpgradeModal({
@@ -29,6 +32,8 @@ export default function UpgradeModal({
   onClose,
   greetingId,
   templatePrice,
+  viewCount,
+  maxFreeViews,
 }: UpgradeModalProps) {
   const router = useRouter();
 
@@ -36,18 +41,16 @@ export default function UpgradeModal({
   useEscapeKey(handleEscape, isOpen);
 
   const handleUpgrade = () => {
-    onClose();
-    router.push("/app/templates");
-  };
-
-  const handleUnlockTemplate = () => {
     if (greetingId) {
       onClose();
       router.push(`/app/greetings/${greetingId}/pay?upgrade=true`);
+    } else {
+      onClose();
+      router.push("/app/templates");
     }
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -65,9 +68,8 @@ export default function UpgradeModal({
             className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white dark:bg-gray-900 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Decorative top gradient */}
-            <div className="absolute top-0 left-0 right-0 h-44 bg-theme-gradient opacity-90" />
-            <div className="absolute top-36 left-0 right-0 h-8 bg-gradient-to-b from-[var(--theme-accent)] to-transparent opacity-30" />
+            {/* Decorative top — solid theme colors for consistent dark/light mode */}
+            <div className="bg-theme-gradient h-40" />
 
             {/* Close button */}
             <Button
@@ -80,26 +82,31 @@ export default function UpgradeModal({
             </Button>
 
             {/* Content */}
-            <div className="relative pt-8 pb-6 px-6 text-center">
-              {/* Lock icon */}
+            <div className="relative -mt-12 px-6 pb-6 text-center">
+              {/* Icon */}
               <motion.div
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-                className="mx-auto mb-4 w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                className="mx-auto mb-4 w-16 h-16 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center"
               >
-                <Lock size={28} className="text-white" />
+                <Zap size={28} className="text-amber-500" />
               </motion.div>
 
-              <h2 className="text-xl font-bold text-white mb-1">
-                Unlock Full Greeting Power
+              <h2 className="text-xl font-bold mb-1">
+                Upgrade This Greeting
               </h2>
-              <p className="text-white/80 text-sm mb-6">
-                Your trial greeting is a preview. Upgrade to unlock:
+              <p className="text-gray-500 text-sm mb-5">
+                Remove trial limits and unlock all features for this card
+                {viewCount !== undefined && maxFreeViews !== undefined && (
+                  <span className="block mt-1 text-amber-600 dark:text-amber-400 font-medium">
+                    {viewCount}/{maxFreeViews} free views used
+                  </span>
+                )}
               </p>
 
               {/* Features list */}
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 text-left space-y-3 mb-6">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 text-left space-y-3 mb-5">
                 {FEATURES.map((feature, i) => (
                   <motion.div
                     key={feature}
@@ -118,43 +125,27 @@ export default function UpgradeModal({
                 ))}
               </div>
 
-              {/* Primary CTA: Unlock This Template (when greetingId + templatePrice available) */}
-              {greetingId && templatePrice ? (
-                <>
-                  <motion.button
-                    onClick={handleUnlockTemplate}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="w-full py-3.5 rounded-xl btn-theme text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-theme"
-                  >
-                    <CreditCard size={16} />
-                    Unlock This Template &mdash;{" "}
+              {/* Primary CTA */}
+              <motion.button
+                onClick={handleUpgrade}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="w-full py-3.5 rounded-xl btn-theme text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-theme"
+              >
+                <CreditCard size={16} />
+                {greetingId && templatePrice ? (
+                  <>
+                    Upgrade &mdash;{" "}
                     {new Intl.NumberFormat("id-ID", {
                       style: "currency",
                       currency: "IDR",
                       minimumFractionDigits: 0,
                     }).format(templatePrice)}
-                  </motion.button>
-
-                  <button
-                    onClick={handleUpgrade}
-                    className="mt-3 w-full px-5 py-2.5 text-sm text-gray-500 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Sparkles size={14} />
-                    Or choose a different template
-                  </button>
-                </>
-              ) : (
-                <motion.button
-                  onClick={handleUpgrade}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="w-full py-3.5 rounded-xl btn-theme text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-theme"
-                >
-                  <Sparkles size={16} />
-                  Choose a Template & Pay
-                </motion.button>
-              )}
+                  </>
+                ) : (
+                  "Choose a Template & Pay"
+                )}
+              </motion.button>
 
               <button
                 onClick={onClose}
@@ -168,4 +159,8 @@ export default function UpgradeModal({
       )}
     </AnimatePresence>
   );
+
+  // Use portal to render outside any parent transform/contain context
+  if (typeof window === "undefined") return modalContent;
+  return createPortal(modalContent, document.body);
 }
