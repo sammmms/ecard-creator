@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 import {
   X,
   Heart,
@@ -13,6 +14,8 @@ import {
   QrCode,
   Copy,
   Check,
+  ImageIcon,
+  Trash2,
 } from "lucide-react";
 import Button from "@/components/Button";
 
@@ -28,6 +31,7 @@ interface WishData {
   id: string;
   name: string | null;
   comment: string | null;
+  imageUrl: string | null;
   createdAt: string;
   donationAmount: number | null;
 }
@@ -43,6 +47,44 @@ interface SendWishModalProps {
 }
 
 type ModalPhase = "form" | "submitting" | "success" | "payment-info";
+
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
+
+async function compressImage(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const maxWidth = 1200;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Canvas context unavailable"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("Compression failed"));
+        },
+        "image/jpeg",
+        0.8,
+      );
+    };
+    img.onerror = () => reject(new Error("Image load failed"));
+    img.src = URL.createObjectURL(file);
+  });
+}
 
 export default function SendWishModal({
   isOpen,
@@ -60,6 +102,16 @@ export default function SendWishModal({
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [phase, setPhase] = useState<ModalPhase>("form");
   const [copied, setCopied] = useState(false);
+
+  const handleEscape = useCallback(() => onClose(), [onClose]);
+  useEscapeKey(handleEscape, isOpen);
+
+  // Image state
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Build available payment methods
   const methods: Array<{
@@ -91,11 +143,54 @@ export default function SendWishModal({
 
   const selectedMethodData = methods.find((m) => m.id === selectedMethod);
 
+  const handleImageSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageError(null);
+
+    if (!file.type.startsWith("image/")) {
+      setImageError("Please select an image file");
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setImageError("Image must be under 2MB");
+      return;
+    }
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  }, []);
+
+  const handleRemoveImage = useCallback(() => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, []);
+
   const handleSubmit = async () => {
     if (!comment.trim() && !name.trim()) return;
 
     setPhase("submitting");
     try {
+      // Upload image first if present
+      let imageUrl: string | null = null;
+      if (imageFile) {
+        setUploadingImage(true);
+        const compressed = await compressImage(imageFile);
+        const fd = new FormData();
+        fd.append("file", compressed, "wish-image.jpg");
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: fd,
+        });
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          imageUrl = uploadData.url;
+        }
+        setUploadingImage(false);
+      }
+
       const res = await fetch("/api/public/wishes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -106,6 +201,7 @@ export default function SendWishModal({
           donationAmount:
             includeDonation && amount ? parseInt(amount, 10) : null,
           paymentMethod: includeDonation ? selectedMethod : null,
+          imageUrl,
         }),
       });
 
@@ -120,6 +216,7 @@ export default function SendWishModal({
         id: data.submission.id,
         name: data.submission.name,
         comment: data.submission.comment,
+        imageUrl: data.submission.imageUrl || null,
         createdAt: data.submission.createdAt,
         donationAmount: data.donationPayment?.amount || null,
       });
@@ -149,6 +246,7 @@ export default function SendWishModal({
     setAmount("");
     setSelectedMethod("");
     setCopied(false);
+    handleRemoveImage();
     onClose();
   };
 
@@ -228,6 +326,50 @@ export default function SendWishModal({
                         rows={3}
                         className="w-full p-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition resize-none"
                       />
+                    </div>
+
+                    {/* Image Upload */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Add Photo <span className="text-gray-400 font-normal">(optional)</span>
+                      </label>
+                      {imagePreview ? (
+                        <div className="relative inline-block">
+                          <Image
+                            src={imagePreview}
+                            alt="Preview"
+                            width={120}
+                            height={120}
+                            className="w-24 h-24 object-cover rounded-xl border border-gray-200"
+                            unoptimized
+                          />
+                          <button
+                            onClick={handleRemoveImage}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-red-600 transition"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex items-center gap-2 w-full p-3 border-2 border-dashed border-gray-200 rounded-xl text-sm text-gray-500 hover:border-red-300 hover:text-red-500 transition cursor-pointer">
+                          {uploadingImage ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <ImageIcon size={16} />
+                          )}
+                          Choose image (max 2MB)
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageSelect}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+                      {imageError && (
+                        <p className="text-xs text-red-500 mt-1">{imageError}</p>
+                      )}
                     </div>
 
                     {/* Donation checkbox */}
@@ -397,7 +539,7 @@ export default function SendWishModal({
                   >
                     <Loader2 size={32} className="animate-spin text-red-500" />
                     <p className="text-sm text-gray-500">
-                      Sending your wish...
+                      {uploadingImage ? "Uploading image..." : "Sending your wish..."}
                     </p>
                   </motion.div>
                 )}

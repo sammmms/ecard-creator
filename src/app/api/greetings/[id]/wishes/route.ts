@@ -37,6 +37,7 @@ export async function GET(
       id: sub.id,
       name: sub.name,
       comment: sub.comment,
+      imageUrl: sub.imageUrl || null,
       createdAt: sub.createdAt.toISOString(),
       donationAmount: matchingDonation?.amount || null,
     };
