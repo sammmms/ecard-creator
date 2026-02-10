@@ -41,6 +41,7 @@ interface Template {
 }
 
 interface GreetingRecord {
+  id: string;
   isTrial: boolean;
   templateId: string;
 }
@@ -244,33 +245,21 @@ function TemplatesPageContent() {
     }
   };
 
-  // Try Free flow: create trial greeting
-  const handleTryFree = async (template: Template) => {
+  // Try Free flow: navigate to deferred trial editor (no DB creation until save)
+  const handleTryFree = (template: Template) => {
     if (trialTemplateIds.has(template.id)) {
-      toast.error("You already have a trial greeting for this template.");
+      // Existing trial — go directly to its edit page
+      const existing = (greetingsData as GreetingRecord[])?.find(
+        (g) => g.isTrial && g.templateId === template.id,
+      );
+      if (existing) {
+        router.push(`/app/greetings/${existing.id}/edit`);
+      } else {
+        toast.error("You already have a trial greeting for this template.");
+      }
       return;
     }
-    setCreating(true);
-    try {
-      const res = await fetch("/api/greetings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ templateId: template.id, asTrial: true }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        if (data?.error) toast.error(data.error);
-        setCreating(false);
-        return;
-      }
-
-      const greeting = await res.json();
-      router.push(`/app/greetings/${greeting.id}/edit`);
-    } catch (error) {
-      console.error(error);
-      setCreating(false);
-    }
+    router.push(`/app/greetings/new?templateId=${template.id}&trial=true`);
   };
 
   if (loading)
@@ -286,7 +275,7 @@ function TemplatesPageContent() {
         <Shimmer className="h-10 w-full rounded-lg" />
         <div className="space-y-4">
           <Shimmer className="h-6 w-32" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <TemplateCardSkeleton key={i} />
             ))}
@@ -467,7 +456,7 @@ function TemplatesPageContent() {
                 <h2 className="text-xl font-bold">Templates</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {templates.map((template) => (
                   <TemplateCard
                     key={template.id}

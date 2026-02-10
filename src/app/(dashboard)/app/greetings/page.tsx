@@ -17,19 +17,36 @@ import * as anim from "@/lib/animations";
 import StatusBadge from "@/components/StatusBadge";
 import Shimmer, { TableRowSkeleton } from "@/components/Shimmer";
 import WishesModal from "@/components/WishesModal";
+import { GreetingStatus } from "@/lib/constants";
 
 interface Greeting {
   id: string;
   title: string;
   slug: string;
   status: string;
+  isExpired?: boolean;
+  isTrial?: boolean;
+  expiresAt?: string | null;
+  trialExpiresAt?: string | null;
   template: { name: string };
   createdAt: string;
   _count?: {
     publicSubmissions?: number;
     donationPayments?: number;
-    events?: number;
   };
+}
+
+function formatExpiry(greeting: Greeting): string | null {
+  const dateStr = greeting.isTrial ? greeting.trialExpiresAt : greeting.expiresAt;
+  if (!dateStr) return null;
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = date.getTime() - now.getTime();
+  const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (days < 0) return `Expired ${date.toLocaleDateString()}`;
+  if (days === 0) return "Expires today";
+  if (days === 1) return "Expires tomorrow";
+  return `Expires ${date.toLocaleDateString()}`;
 }
 
 export default function GreetingsPage() {
@@ -177,12 +194,24 @@ export default function GreetingsPage() {
                       Created{" "}
                       {new Date(greeting.createdAt).toLocaleDateString()}
                     </div>
+                    {formatExpiry(greeting) && (
+                      <div className={`text-xs mt-0.5 ${greeting.isExpired ? "text-red-500" : "text-gray-400"}`}>
+                        {formatExpiry(greeting)}
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {greeting.template.name}
                   </td>
                   <td className="px-6 py-4">
-                    <StatusBadge status={greeting.status} />
+                    <div className="flex items-center gap-1.5">
+                      <StatusBadge status={greeting.status} />
+                      {greeting.isExpired && (
+                        <span className="inline-block px-2 py-0.5 text-[10px] font-medium rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                          expired
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-sm">
                     <button
@@ -200,8 +229,8 @@ export default function GreetingsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      {greeting.status === "pending_payment" ||
-                      greeting.status === "draft" ? (
+                      {greeting.status === GreetingStatus.PENDING_PAYMENT ||
+                      greeting.status === GreetingStatus.DRAFT ? (
                         <Link
                           href={`/app/greetings/${greeting.id}/pay`}
                           className="link-theme flex items-center gap-1 text-sm font-medium"
@@ -272,8 +301,20 @@ export default function GreetingsPage() {
                   {greeting.template.name} &middot;{" "}
                   {new Date(greeting.createdAt).toLocaleDateString()}
                 </div>
+                {formatExpiry(greeting) && (
+                  <div className={`text-[11px] mt-0.5 ${greeting.isExpired ? "text-red-500" : "text-gray-400"}`}>
+                    {formatExpiry(greeting)}
+                  </div>
+                )}
               </div>
-              <StatusBadge status={greeting.status} />
+              <div className="flex items-center gap-1.5">
+                <StatusBadge status={greeting.status} />
+                {greeting.isExpired && (
+                  <span className="inline-block px-2 py-0.5 text-[10px] font-medium rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                    expired
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-y-2 pt-1 border-t border-gray-200 dark:border-gray-700">
@@ -287,8 +328,8 @@ export default function GreetingsPage() {
                 {greeting._count?.publicSubmissions || 0} wishes
               </button>
               <div className="flex items-center gap-3">
-                {greeting.status === "pending_payment" ||
-                greeting.status === "draft" ? (
+                {greeting.status === GreetingStatus.PENDING_PAYMENT ||
+                greeting.status === GreetingStatus.DRAFT ? (
                   <Link
                     href={`/app/greetings/${greeting.id}/pay`}
                     className="link-theme flex items-center gap-1 text-sm font-medium"

@@ -17,6 +17,11 @@ import {
   Music,
   ChevronDown,
   Type,
+  Link2,
+  Check,
+  X as XIcon,
+  CalendarClock,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -31,6 +36,8 @@ import toast from "react-hot-toast";
 import { TemplateRenderer } from "@/components/templates";
 import GreetingPageWrapper from "@/components/GreetingPageWrapper";
 import { MUSIC_TRACKS, getTrackById } from "@/lib/music";
+import { useSlugCheck } from "@/hooks/useSlugCheck";
+import { GreetingStatus } from "@/lib/constants";
 
 interface Greeting {
   id: string;
@@ -46,10 +53,17 @@ interface Greeting {
   trialExpiresAt: string | null;
   musicTrackId: string | null;
   slug: string;
+  viewCount: number;
+  maxFreeViews: number;
+  expiresAt: string | null;
+  isExpired: boolean;
+  status: string;
   template?: {
     componentSlug?: string;
     event?: string;
     premiumPrice?: number | null;
+    extensionMonths?: number;
+    extensionPrice?: number;
   };
 }
 
@@ -68,10 +82,29 @@ export default function EditGreetingPage() {
   const [upgradeTrigger, setUpgradeTrigger] = useState("");
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [showMusicPicker, setShowMusicPicker] = useState(false);
+  const [customSlug, setCustomSlug] = useState("");
+  const [slugInitialized, setSlugInitialized] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const isTrial = greeting?.isTrial === true;
+
+  // Initialize slug field
+  if (greeting && !slugInitialized) {
+    setCustomSlug(greeting.slug);
+    setSlugInitialized(true);
+  }
+
+  const slugCheck = useSlugCheck(
+    greeting?.id || "",
+    customSlug,
+    greeting?.slug || "",
+  );
+
+  const handleExtend = () => {
+    if (!greeting) return;
+    router.push(`/app/greetings/${greeting.id}/pay?extend=true`);
+  };
 
   // Initialize form data once greeting loads
   if (greeting && formInitId !== greeting.id) {
@@ -181,6 +214,22 @@ export default function EditGreetingPage() {
     setSaving(true);
     setSaved(false);
     try {
+      // Save slug if changed and available
+      const slugChanged = greeting && customSlug !== greeting.slug;
+      if (slugChanged && !slugCheck.isChecking && slugCheck.isAvailable !== false) {
+        const slugRes = await fetch(`/api/greetings/${params.id}/slug`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug: customSlug }),
+        });
+        const slugData = await slugRes.json();
+        if (!slugData.ok) {
+          toast.error(slugData.error || "Failed to save custom URL");
+          setSaving(false);
+          return;
+        }
+      }
+
       const res = await fetch(`/api/greetings/${params.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -297,14 +346,22 @@ export default function EditGreetingPage() {
             variants={anim.fadeInUp}
             className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300"
           >
-            <strong>Trial Greeting:</strong> Some features are locked. Upgrade
-            to a paid template to unlock custom logo, donations, and more.
-            <button
-              onClick={() => handleUpgradeTrigger("trial_banner")}
-              className="ml-2 underline underline-offset-2 font-bold hover:text-amber-900 dark:hover:text-amber-200 transition-colors"
-            >
-              Upgrade Now
-            </button>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <strong>Trial Greeting</strong> — Some features are locked.
+                {greeting.viewCount !== undefined && (
+                  <span className="ml-1.5 text-xs font-medium opacity-80">
+                    ({greeting.viewCount}/{greeting.maxFreeViews} views used)
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => handleUpgradeTrigger("trial_banner")}
+                className="shrink-0 px-3 py-1 rounded-lg bg-amber-600 text-white text-xs font-bold hover:bg-amber-700 transition-colors"
+              >
+                Upgrade Now
+              </button>
+            </div>
           </motion.div>
         )}
 
@@ -413,6 +470,91 @@ export default function EditGreetingPage() {
                 className="w-full p-2.5 border rounded-lg dark:bg-gray-800 dark:border-gray-700 input-focus-theme outline-none transition text-sm"
               />
             </div>
+
+            {/* Custom URL (Slug) */}
+            <div>
+              <label className="block text-sm font-medium mb-1 flex items-center gap-1.5">
+                <Link2 size={14} /> Custom URL
+                {isTrial && <Lock size={12} className="text-amber-500" />}
+              </label>
+              {isTrial ? (
+                <button
+                  type="button"
+                  onClick={() => handleUpgradeTrigger("custom_slug")}
+                  className="w-full p-2.5 border rounded-lg dark:bg-gray-800 dark:border-gray-700 text-left text-sm text-gray-400 flex items-center justify-between opacity-60"
+                >
+                  <span>/g/{greeting.slug}</span>
+                  <Lock size={14} className="text-amber-500" />
+                </button>
+              ) : (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-400 shrink-0">/g/</span>
+                    <input
+                      type="text"
+                      value={customSlug}
+                      onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                      placeholder={greeting.slug}
+                      className="flex-1 p-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 input-focus-theme outline-none transition text-sm"
+                    />
+                  </div>
+                  {slugCheck.isChecking && (
+                    <p className="text-[11px] text-gray-400 flex items-center gap-1">
+                      <Loader2 size={10} className="animate-spin" /> Checking availability...
+                    </p>
+                  )}
+                  {!slugCheck.isChecking && slugCheck.isAvailable === true && customSlug !== greeting.slug && (
+                    <p className="text-[11px] text-green-500 flex items-center gap-1">
+                      <Check size={10} /> Available
+                    </p>
+                  )}
+                  {!slugCheck.isChecking && slugCheck.isAvailable === false && (
+                    <p className="text-[11px] text-red-500 flex items-center gap-1">
+                      <XIcon size={10} /> {slugCheck.error || "Not available"}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Expiry Info (non-trial published greetings only) */}
+            {!isTrial && greeting.expiresAt && (
+              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-1.5 text-sm font-medium">
+                  <CalendarClock size={14} />
+                  {greeting.isExpired ? (
+                    <span className="text-red-500">Expired</span>
+                  ) : (
+                    <span>Expires on {new Date(greeting.expiresAt).toLocaleDateString()}</span>
+                  )}
+                </div>
+                {greeting.isExpired ? (
+                  <p className="text-[11px] text-gray-400">
+                    This greeting is no longer visible to visitors.
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-gray-400">
+                    {Math.max(0, Math.ceil((new Date(greeting.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} days remaining
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={handleExtend}
+                  className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                >
+                  <RefreshCw size={10} />
+                  {greeting.isExpired
+                    ? `Extend to republish (${greeting.template?.extensionMonths || 6} months)`
+                    : `Extend by ${greeting.template?.extensionMonths || 6} months`}
+                </button>
+              </div>
+            )}
+            {!isTrial && !greeting.expiresAt && greeting.status === GreetingStatus.DRAFT && (
+              <p className="text-[11px] text-gray-400">
+                <CalendarClock size={10} className="inline mr-1" />
+                Expiry date will be set when published.
+              </p>
+            )}
 
             {/* Card Content (collapsible) */}
             <Collapsible
@@ -672,6 +814,8 @@ export default function EditGreetingPage() {
         trigger={upgradeTrigger}
         greetingId={greeting.id}
         templatePrice={greeting.template?.premiumPrice}
+        viewCount={greeting.viewCount}
+        maxFreeViews={greeting.maxFreeViews}
       />
     </>
   );

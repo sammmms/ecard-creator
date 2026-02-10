@@ -6,6 +6,8 @@ import db from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { isGreetingExpired } from "@/lib/expiry";
+import { ReceiverConfigStatus } from "@/lib/constants";
 import GreetingRenderer from "@/components/GreetingRenderer";
 import { TemplateRenderer } from "@/components/templates";
 import { ViewTracker } from "@/components/EventTracker";
@@ -133,6 +135,42 @@ export default async function PublicGreetingPage({
     }
   }
 
+  // Check greeting expiry (non-trial greetings only)
+  if (!greeting.isTrial && isGreetingExpired(greeting) && !isOwner) {
+    // Update cached flag
+    if (!greeting.isExpired) {
+      await db.greeting.update({
+        where: { id: greeting.id },
+        data: { isExpired: true },
+      });
+    }
+
+    return (
+      <div className="min-h-dvh flex items-center justify-center bg-linear-to-b from-gray-950 via-gray-900 to-gray-950 p-4">
+        <div className="max-w-sm w-full rounded-2xl bg-gray-900/80 border border-gray-800 p-8 text-center space-y-5 shadow-2xl">
+          <div className="w-14 h-14 mx-auto rounded-full bg-gray-800 flex items-center justify-center">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold text-white">
+            This greeting has expired
+          </h1>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            The creator can extend this greeting to make it available again.
+          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center gap-2 mt-2 w-full px-6 py-3 rounded-xl bg-white text-gray-900 font-semibold text-sm hover:bg-gray-100 transition-colors"
+          >
+            Create your own greeting
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   // Track unique view by IP for all non-owner visits
   if (!isOwner) {
     const headersList = await headers();
@@ -185,7 +223,7 @@ export default async function PublicGreetingPage({
       where: {
         userId: greeting.userId,
         mode: greeting.donationMode,
-        status: "active",
+        status: ReceiverConfigStatus.ACTIVE,
       },
     });
 
