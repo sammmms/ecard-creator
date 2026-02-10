@@ -1,20 +1,28 @@
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function proxy(req: NextRequest) {
-  const token = await getToken({ req });
+const authPages = ["/login", "/register"];
 
-  // No valid JWT → redirect to login
-  if (!token?.sub) {
+export async function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+  // Authenticated users should not access auth pages
+  if (authPages.includes(pathname) && token?.sub) {
+    return NextResponse.redirect(new URL("/app", req.url));
+  }
+
+  // Unauthenticated users cannot access dashboard
+  if (pathname.startsWith("/app") && !token?.sub) {
     const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
+    loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
-// Only protect dashboard routes
+// Protect dashboard routes + redirect auth pages
 export const config = {
-  matcher: ["/app/:path*"],
+  matcher: ["/app/:path*", "/login", "/register"],
 };
