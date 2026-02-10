@@ -1,4 +1,5 @@
 import db from "@/lib/db";
+import { GreetingStatus } from "@/lib/constants";
 import DemoClient from "./DemoClient";
 
 export const revalidate = 0;
@@ -52,7 +53,7 @@ async function ensureDemoGreeting() {
       messageDefault: "",
       submissionsEnabled: true,
       donationEnabled: false,
-      status: "published",
+      status: GreetingStatus.PUBLISHED,
     },
     include,
   });

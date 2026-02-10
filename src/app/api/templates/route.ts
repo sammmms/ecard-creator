@@ -11,6 +11,15 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
+
+  // Single template by ID
+  const id = searchParams.get("id");
+  if (id) {
+    const template = await db.template.findUnique({ where: { id } });
+    if (!template) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json(template);
+  }
+
   const event = searchParams.get("event");
   const category = searchParams.get("category");
   const search = searchParams.get("search");

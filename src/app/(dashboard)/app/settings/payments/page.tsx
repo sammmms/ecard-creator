@@ -3,6 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
+import { ReceiverConfigStatus } from "@/lib/constants";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -64,7 +65,7 @@ export default function PaymentSettingsPage() {
             instructions: manual.instructionsText || "",
             ewalletType: manual.ewalletType || "",
             ewalletNumber: manual.ewalletNumber || "",
-            active: manual.status === "active",
+            active: manual.status === ReceiverConfigStatus.ACTIVE,
           });
           try {
             const parsed = JSON.parse(manual.qrisImageUrl || "[]");
@@ -79,7 +80,7 @@ export default function PaymentSettingsPage() {
         if (platform) {
           setPlatformConfig({
             displayName: platform.displayName || "",
-            active: platform.status === "active",
+            active: platform.status === ReceiverConfigStatus.ACTIVE,
           });
         }
 

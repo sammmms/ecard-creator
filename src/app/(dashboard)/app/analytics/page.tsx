@@ -1,7 +1,9 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import db from "@/lib/db";
+import { GreetingStatus, DonationStatus } from "@/lib/constants";
 import PerGreetingStats from "./PerGreetingStats";
 import RecentActivity from "./RecentActivity";
 
@@ -27,10 +29,10 @@ export default async function AnalyticsPage() {
     db.greeting.count({ where: { userId } }),
 
     // Published count
-    db.greeting.count({ where: { userId, status: "published" } }),
+    db.greeting.count({ where: { userId, status: GreetingStatus.PUBLISHED } }),
 
     // Draft count
-    db.greeting.count({ where: { userId, status: "draft" } }),
+    db.greeting.count({ where: { userId, status: GreetingStatus.DRAFT } }),
 
     // Trial count
     db.greeting.count({ where: { userId, isTrial: true } }),
@@ -54,7 +56,7 @@ export default async function AnalyticsPage() {
     db.donationPayment.aggregate({
       _sum: { amount: true },
       where: {
-        status: "paid",
+        status: DonationStatus.PAID,
         greeting: { userId },
       },
     }),
@@ -176,7 +178,10 @@ export default async function AnalyticsPage() {
             </span>
           </p>
         </div>
-        <div className="glass-card rounded-xl p-6">
+        <Link
+          href="/app/wishes?tab=donations"
+          className="glass-card rounded-xl p-6 block hover:ring-2 hover:ring-theme-primary/30 transition-all group"
+        >
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
             Total Donations
           </p>
@@ -185,7 +190,10 @@ export default async function AnalyticsPage() {
               {formatCurrency(totalDonations)}
             </span>
           </p>
-        </div>
+          <p className="text-xs text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            Click to manage
+          </p>
+        </Link>
       </div>
 
       {/* Greeting Counts by Status */}

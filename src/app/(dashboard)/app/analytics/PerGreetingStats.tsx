@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { GreetingStatus } from "@/lib/constants";
 import WishesModal from "@/components/WishesModal";
 
 interface GreetingStat {
@@ -70,9 +71,9 @@ export default function PerGreetingStats({ stats }: { stats: GreetingStat[] }) {
                   <td className="px-5 py-3">
                     <span
                       className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
-                        g.status === "published"
+                        g.status === GreetingStatus.PUBLISHED
                           ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                          : g.status === "draft"
+                          : g.status === GreetingStatus.DRAFT
                             ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                             : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                       }`}
@@ -117,9 +118,9 @@ export default function PerGreetingStats({ stats }: { stats: GreetingStat[] }) {
               </div>
               <span
                 className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full shrink-0 ${
-                  g.status === "published"
+                  g.status === GreetingStatus.PUBLISHED
                     ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                    : g.status === "draft"
+                    : g.status === GreetingStatus.DRAFT
                       ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                       : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                 }`}
