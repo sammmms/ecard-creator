@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,7 +14,7 @@ import {
   ImagePlus,
 } from "lucide-react";
 import * as anim from "@/lib/animations";
-import PageLoader from "@/components/PageLoader";
+import Shimmer, { FormFieldSkeleton } from "@/components/Shimmer";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import toast from "react-hot-toast";
 
@@ -45,11 +47,12 @@ export default function PaymentSettingsPage() {
     active: false,
   });
 
-  // Load existing configs on mount
-  useEffect(() => {
-    fetch("/api/receiver-configs")
-      .then((res) => res.json())
-      .then((configs: Array<Record<string, string | null>>) => {
+  // Load existing configs
+  const { isLoading: configsLoading } = useSWR<Array<Record<string, string | null>>>(
+    "/api/receiver-configs",
+    fetcher,
+    {
+      onSuccess: (configs) => {
         const manual = configs.find((c) => c.mode === "manual");
         const platform = configs.find((c) => c.mode === "platform");
 
@@ -61,7 +64,6 @@ export default function PaymentSettingsPage() {
             ewalletNumber: manual.ewalletNumber || "",
             active: manual.status === "active",
           });
-          // Parse QRIS images — handle both JSON array and legacy single URL
           try {
             const parsed = JSON.parse(manual.qrisImageUrl || "[]");
             setQrisImages(Array.isArray(parsed) ? parsed : []);
@@ -80,9 +82,10 @@ export default function PaymentSettingsPage() {
         }
 
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+      },
+      onError: () => setLoading(false),
+    },
+  );
 
   // Upload a QRIS image
   const handleQrisUpload = async (file: File) => {
@@ -166,7 +169,37 @@ export default function PaymentSettingsPage() {
     }
   };
 
-  if (loading) return <PageLoader />;
+  if (loading)
+    return (
+      <div className="max-w-4xl space-y-6">
+        <div className="space-y-2">
+          <Shimmer className="h-8 w-52" />
+          <Shimmer className="h-4 w-64" />
+        </div>
+        <div className="glass-card rounded-xl overflow-hidden">
+          <div className="flex border-b border-gray-200 dark:border-gray-700">
+            <Shimmer className="flex-1 h-14 rounded-none" />
+            <Shimmer className="flex-1 h-14 rounded-none" />
+          </div>
+          <div className="p-6 space-y-5">
+            <Shimmer className="h-6 w-56" />
+            <FormFieldSkeleton />
+            <div className="space-y-1.5">
+              <Shimmer className="h-4 w-24" />
+              <Shimmer className="h-24 w-full rounded-lg" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <FormFieldSkeleton />
+              <FormFieldSkeleton />
+            </div>
+            <Shimmer className="h-6 w-40" />
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+              <Shimmer className="h-10 w-36 rounded-lg" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
 
   return (
     <motion.div

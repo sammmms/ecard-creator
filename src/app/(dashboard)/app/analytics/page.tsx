@@ -2,6 +2,8 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import db from "@/lib/db";
+import PerGreetingStats from "./PerGreetingStats";
+import RecentActivity from "./RecentActivity";
 
 export default async function AnalyticsPage() {
   const session = await getServerSession(authOptions);
@@ -139,11 +141,6 @@ export default async function AnalyticsPage() {
     wishes: g._count.publicSubmissions,
   }));
 
-  // Format event type labels
-  function formatEventType(type: string): string {
-    return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  }
-
   // Format currency
   function formatCurrency(amount: number): string {
     return new Intl.NumberFormat("id-ID", {
@@ -238,108 +235,23 @@ export default async function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Per-Greeting Stats Table */}
-      {perGreetingStats.length > 0 && (
-        <div>
-          <h2 className="text-xl font-semibold mb-4">
-            Per-Greeting Performance
-          </h2>
-          <div className="glass-card rounded-xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-gray-700">
-                    <th className="text-left px-5 py-3 font-medium text-gray-500 dark:text-gray-400">
-                      Greeting
-                    </th>
-                    <th className="text-left px-5 py-3 font-medium text-gray-500 dark:text-gray-400">
-                      Status
-                    </th>
-                    <th className="text-right px-5 py-3 font-medium text-gray-500 dark:text-gray-400">
-                      Views
-                    </th>
-                    <th className="text-right px-5 py-3 font-medium text-gray-500 dark:text-gray-400">
-                      Shares
-                    </th>
-                    <th className="text-right px-5 py-3 font-medium text-gray-500 dark:text-gray-400">
-                      Wishes
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {perGreetingStats.map((g) => (
-                    <tr
-                      key={g.id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                    >
-                      <td className="px-5 py-3">
-                        <div className="font-medium">{g.title}</div>
-                        <div className="text-xs text-gray-400">/{g.slug}</div>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span
-                          className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
-                            g.status === "published"
-                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                              : g.status === "draft"
-                                ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                                : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                          }`}
-                        >
-                          {g.isTrial ? "trial" : g.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-right font-medium">
-                        {g.views}
-                      </td>
-                      <td className="px-5 py-3 text-right font-medium">
-                        {g.shares}
-                      </td>
-                      <td className="px-5 py-3 text-right font-medium">
-                        {g.wishes}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Per-Greeting Stats with clickable wishes */}
+      <PerGreetingStats stats={perGreetingStats} />
 
       {/* Recent Activity */}
       <div>
         <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-        {recentEvents.length === 0 ? (
-          <div className="glass-card rounded-xl p-8 text-center text-gray-500 dark:text-gray-400">
-            No events recorded yet. Share your greetings to start seeing
-            activity.
-          </div>
-        ) : (
-          <div className="glass-card rounded-xl divide-y divide-gray-200 dark:divide-gray-700 overflow-hidden">
-            {recentEvents.map((event) => (
-              <div
-                key={event.id}
-                className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-              >
-                <div>
-                  <p className="font-medium text-sm">
-                    {formatEventType(event.type)}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {event.greeting.title || "Untitled"}{" "}
-                    <span className="text-gray-400 dark:text-gray-500">
-                      /{event.greeting.slug}
-                    </span>
-                  </p>
-                </div>
-                <p className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap ml-4">
-                  {new Date(event.createdAt).toLocaleString()}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
+        <RecentActivity
+          events={recentEvents.map((e) => ({
+            id: e.id,
+            type: e.type,
+            createdAt: e.createdAt.toISOString(),
+            greeting: {
+              title: e.greeting.title,
+              slug: e.greeting.slug,
+            },
+          }))}
+        />
       </div>
     </div>
   );
