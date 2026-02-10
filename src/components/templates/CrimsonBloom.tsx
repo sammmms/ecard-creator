@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { TemplateProps } from "@/types/template";
@@ -76,6 +77,48 @@ function CherryBlossomOverlay() {
   );
 }
 
+// --- Red sparkle dots ---
+function CrimsonSparkles() {
+  const [sparkles] = useState(() =>
+    Array.from({ length: 18 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 2.5 + 1.5,
+      delay: Math.random() * 5,
+      duration: Math.random() * 3 + 2.5,
+    })),
+  );
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-2">
+      {sparkles.map((s) => (
+        <motion.div
+          key={s.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            width: s.size,
+            height: s.size,
+            background: "radial-gradient(circle, #FFB7C5 0%, #FF69B4 60%, transparent 100%)",
+          }}
+          animate={{
+            opacity: [0, 0.8, 0],
+            scale: [0.5, 1.3, 0.5],
+          }}
+          transition={{
+            duration: s.duration,
+            delay: s.delay,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function PaperCutDivider() {
   return (
     <div className="flex items-center justify-center gap-0 w-full py-2">
@@ -132,11 +175,60 @@ export default function CrimsonBloom({
         }}
       />
 
+      {/* Radial glow pulses */}
+      <motion.div
+        className="absolute inset-0 -z-20"
+        animate={isPlaying ? { opacity: [0.2, 0.45, 0.2] } : {}}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          background:
+            "radial-gradient(ellipse at 25% 25%, rgba(220,20,60,0.15) 0%, transparent 50%), " +
+            "radial-gradient(ellipse at 75% 75%, rgba(255,183,197,0.08) 0%, transparent 50%)",
+        }}
+      />
+
+      {/* Corner glow spots */}
+      {[
+        { x: "10%", y: "15%", color: "rgba(220,20,60,0.1)", s: 150 },
+        { x: "90%", y: "10%", color: "rgba(255,105,180,0.08)", s: 130 },
+        { x: "85%", y: "85%", color: "rgba(220,20,60,0.08)", s: 160 },
+        { x: "12%", y: "88%", color: "rgba(255,183,197,0.1)", s: 140 },
+      ].map((spot, i) => (
+        <div
+          key={i}
+          className="absolute -z-15 pointer-events-none"
+          style={{
+            left: spot.x,
+            top: spot.y,
+            width: spot.s,
+            height: spot.s,
+            background: `radial-gradient(circle, ${spot.color} 0%, transparent 70%)`,
+            borderRadius: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
+      ))}
+
       {/* Cherry blossom petals */}
       {isPlaying && <CherryBlossomOverlay />}
 
+      {/* Sparkle dots */}
+      {isPlaying && <CrimsonSparkles />}
+
+      {/* Top ornamental swoosh */}
+      <motion.div
+        className="absolute top-0 left-0 right-0 z-5 pointer-events-none overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <svg viewBox="0 0 400 30" preserveAspectRatio="none" className="w-full h-6 opacity-15">
+          <path d="M0,30 Q100,0 200,15 Q300,30 400,5 L400,0 L0,0 Z" fill="#DC143C" />
+        </svg>
+      </motion.div>
+
       {/* Trial banner */}
-      {isTrial && !isPreview && (
+      {isTrial && !isPreview && !isEditing && (
         <motion.div
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -314,8 +406,20 @@ export default function CrimsonBloom({
         </div>
       </motion.div>
 
+      {/* Bottom ornamental swoosh */}
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 z-5 pointer-events-none overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+      >
+        <svg viewBox="0 0 400 30" preserveAspectRatio="none" className="w-full h-6 opacity-12 rotate-180">
+          <path d="M0,30 Q100,0 200,15 Q300,30 400,5 L400,0 L0,0 Z" fill="#DC143C" />
+        </svg>
+      </motion.div>
+
       {/* Trial watermark badge at bottom */}
-      {isTrial && !isPreview && (
+      {isTrial && !isPreview && !isEditing && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

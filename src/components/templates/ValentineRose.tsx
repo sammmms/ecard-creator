@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { TemplateProps } from "@/types/template";
@@ -62,6 +63,48 @@ const COLOR_SCHEMES = {
 } as const;
 
 type SchemeKey = keyof typeof COLOR_SCHEMES;
+
+// --- Sparkle dots ---
+function RoseSparkles({ accent }: { accent: string }) {
+  const [sparkles] = useState(() =>
+    Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 2.5 + 1.5,
+      delay: Math.random() * 5,
+      duration: Math.random() * 3 + 2.5,
+    })),
+  );
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-2">
+      {sparkles.map((s) => (
+        <motion.div
+          key={s.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            width: s.size,
+            height: s.size,
+            background: `radial-gradient(circle, ${accent}cc 0%, ${accent}66 60%, transparent 100%)`,
+          }}
+          animate={{
+            opacity: [0, 0.9, 0],
+            scale: [0.5, 1.4, 0.5],
+          }}
+          transition={{
+            duration: s.duration,
+            delay: s.delay,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 // --- Heart particles ---
 const hearts = Array.from({ length: 20 }, (_, i) => ({
@@ -293,6 +336,18 @@ export default function ValentineRose({
         }}
       />
 
+      {/* Radial glow pulse */}
+      <motion.div
+        className="absolute inset-0 -z-20"
+        animate={isPlaying ? { opacity: [0.2, 0.45, 0.2] } : {}}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          background:
+            `radial-gradient(ellipse at 25% 25%, ${scheme.accent}18 0%, transparent 50%), ` +
+            `radial-gradient(ellipse at 75% 75%, ${scheme.accent}10 0%, transparent 50%)`,
+        }}
+      />
+
       {/* Corner rose ornaments */}
       <div className="absolute top-4 left-4 -z-20 opacity-20 pointer-events-none">
         <svg viewBox="0 0 80 80" width="80" height="80" fill="none">
@@ -357,8 +412,11 @@ export default function ValentineRose({
       {/* Floating bubbles */}
       {isPlaying && <FloatingBubbles accent={scheme.accent} />}
 
+      {/* Sparkle dots */}
+      {isPlaying && <RoseSparkles accent={scheme.accent} />}
+
       {/* Trial banner */}
-      {isTrial && !isPreview && (
+      {isTrial && !isPreview && !isEditing && (
         <motion.div
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -585,7 +643,7 @@ export default function ValentineRose({
       </motion.div>
 
       {/* Trial watermark badge at bottom */}
-      {isTrial && !isPreview && (
+      {isTrial && !isPreview && !isEditing && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

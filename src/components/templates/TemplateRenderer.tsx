@@ -5,6 +5,8 @@ import GoldNShiny from "./GoldNShiny";
 import CrimsonBloom from "./CrimsonBloom";
 import JadeProsperity from "./JadeProsperity";
 import ValentineRose from "./ValentineRose";
+import ValentineSweet from "./ValentineSweet";
+import ValentineBloom from "./ValentineBloom";
 
 export default function TemplateRenderer({
   componentSlug,
@@ -19,6 +21,10 @@ export default function TemplateRenderer({
       return <JadeProsperity {...props} />;
     case "valentine-rose":
       return <ValentineRose {...props} />;
+    case "valentine-sweet":
+      return <ValentineSweet {...props} />;
+    case "valentine-bloom":
+      return <ValentineBloom {...props} />;
     default:
       return null;
   }
