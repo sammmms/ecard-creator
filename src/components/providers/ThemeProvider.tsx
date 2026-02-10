@@ -31,7 +31,7 @@ export const THEMES = {
     primary: { light: "#dc2626", dark: "#ef4444" }, // red-600, red-500
     accent: { light: "#f59e0b", dark: "#fbbf24" }, // amber-500, amber-400
     gradient: "from-red-600 to-amber-500",
-    logo: "gold",
+    logo: "red",
   },
   eid: {
     name: "Eid Mubarak",
@@ -66,7 +66,7 @@ export const THEMES = {
     primary: { light: "#dc2626", dark: "#ef4444" }, // red-600, red-500
     accent: { light: "#f8fafc", dark: "#e2e8f0" }, // slate-50, slate-200
     gradient: "from-red-600 to-white",
-    logo: "gold",
+    logo: "independence",
   },
 } as const;
 
