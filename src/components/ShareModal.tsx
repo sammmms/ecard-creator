@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -100,6 +101,9 @@ export default function ShareModal({
   const [igCopied, setIgCopied] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  const handleEscape = useCallback(() => onClose(), [onClose]);
+  useEscapeKey(handleEscape, isOpen);
 
   // Sharing URLs
   const encodedUrl = encodeURIComponent(url);

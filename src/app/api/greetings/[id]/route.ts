@@ -81,6 +81,7 @@ export async function PATCH(
         submissionsEnabled: body.submissionsEnabled,
         donationEnabled: body.donationEnabled,
         donationMode: body.donationMode,
+        ...(body.musicTrackId !== undefined && { musicTrackId: body.musicTrackId }),
       },
     });
 

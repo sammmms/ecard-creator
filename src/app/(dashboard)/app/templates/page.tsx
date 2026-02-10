@@ -4,6 +4,7 @@ import { useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 import {
   Loader2,
   Sparkles,
@@ -11,10 +12,9 @@ import {
   CreditCard,
   FileImage,
   CheckCircle,
-  Gift,
-  Lock,
   Search,
   SlidersHorizontal,
+  Gift,
 } from "lucide-react";
 import * as anim from "@/lib/animations";
 import PageLoader from "@/components/PageLoader";
@@ -27,19 +27,22 @@ import { TemplateRenderer } from "@/components/templates";
 import GreetingRenderer from "@/components/GreetingRenderer";
 import { CATEGORIES } from "@/lib/categories";
 import { fetcher } from "@/lib/fetcher";
-import ToggleSwitch from "@/components/ToggleSwitch";
 
 interface Template {
   id: string;
   name: string;
   price: number;
-  isTrial: boolean;
   previewImageUrl: string;
   configJson: string;
   componentSlug?: string | null;
   description?: string | null;
   category?: string | null;
   premiumPrice?: number | null;
+}
+
+interface GreetingRecord {
+  isTrial: boolean;
+  templateId: string;
 }
 
 // Placeholder greeting data for live template preview
@@ -60,7 +63,6 @@ const PREVIEW_GREETING = {
 
 const PRICING_OPTIONS = [
   { value: "all", label: "All Prices" },
-  { value: "free", label: "Free" },
   { value: "paid", label: "Paid" },
 ];
 
@@ -74,7 +76,6 @@ function buildTemplateKey(filters: {
   category: string;
   search: string;
   pricing: string;
-  trial: string;
   sort: string;
 }) {
   const params = new URLSearchParams();
@@ -83,10 +84,7 @@ function buildTemplateKey(filters: {
   if (filters.search) params.set("search", filters.search);
   if (filters.pricing && filters.pricing !== "all")
     params.set("pricing", filters.pricing);
-  if (filters.trial === "1") params.set("trial", "1");
-  else if (filters.trial === "0") params.set("trial", "0");
-  if (filters.sort && filters.sort !== "name")
-    params.set("sort", filters.sort);
+  if (filters.sort && filters.sort !== "name") params.set("sort", filters.sort);
   const qs = params.toString();
   return `/api/templates${qs ? `?${qs}` : ""}`;
 }
@@ -110,26 +108,32 @@ function TemplatesPageContent() {
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("search") || "",
   );
-  const [pricing, setPricing] = useState(
-    searchParams.get("pricing") || "all",
-  );
-  const [trial, setTrial] = useState(searchParams.get("trial") || "");
+  const [pricing, setPricing] = useState(searchParams.get("pricing") || "all");
   const [sort, setSort] = useState(searchParams.get("sort") || "name");
   const [creating, setCreating] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
     null,
   );
-  const [previewTemplate, setPreviewTemplate] = useState<Template | null>(
-    null,
-  );
+  const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  // Escape key: close topmost overlay (preview > payment modal > filter drawer)
+  const handleEscape = useCallback(() => {
+    if (previewTemplate) {
+      setPreviewTemplate(null);
+    } else if (selectedTemplate) {
+      setSelectedTemplate(null);
+    } else if (filtersOpen) {
+      setFiltersOpen(false);
+    }
+  }, [previewTemplate, selectedTemplate, filtersOpen]);
+  useEscapeKey(handleEscape, !!(previewTemplate || selectedTemplate || filtersOpen));
 
   // SWR: templates (server-filtered)
   const templateKey = buildTemplateKey({
     category: selectedCategory,
     search: searchQuery,
     pricing,
-    trial,
     sort,
   });
   const {
@@ -142,14 +146,19 @@ function TemplatesPageContent() {
     revalidateOnFocus: false,
   });
 
-  // SWR: greetings (to check if user has trial)
+  // SWR: greetings (to check which templates have active trials)
   const { data: greetingsData } = useSWR("/api/greetings", fetcher, {
     dedupingInterval: 5000,
     revalidateOnFocus: false,
   });
-  const hasTrialGreeting =
-    Array.isArray(greetingsData) &&
-    greetingsData.some((g: { isTrial: boolean }) => g.isTrial);
+
+  // Build a set of template IDs that have active trial greetings
+  const trialTemplateIds = new Set<string>();
+  if (Array.isArray(greetingsData)) {
+    greetingsData.forEach((g: GreetingRecord) => {
+      if (g.isTrial) trialTemplateIds.add(g.templateId);
+    });
+  }
 
   const loading = templatesLoading && templates.length === 0;
 
@@ -161,7 +170,6 @@ function TemplatesPageContent() {
         category: selectedCategory,
         search: searchQuery,
         pricing,
-        trial,
         sort,
         ...updates,
       };
@@ -170,13 +178,11 @@ function TemplatesPageContent() {
       if (state.search) params.set("search", state.search);
       if (state.pricing && state.pricing !== "all")
         params.set("pricing", state.pricing);
-      if (state.trial === "1" || state.trial === "0")
-        params.set("trial", state.trial);
       if (state.sort && state.sort !== "name") params.set("sort", state.sort);
       const qs = params.toString();
       router.replace(`/app/templates${qs ? `?${qs}` : ""}`, { scroll: false });
     },
-    [router, selectedCategory, searchQuery, pricing, trial, sort],
+    [router, selectedCategory, searchQuery, pricing, sort],
   );
 
   const handleCategoryChange = (cat: string) => {
@@ -194,12 +200,6 @@ function TemplatesPageContent() {
     updateParams({ pricing: value });
   };
 
-  const handleTrialChange = (checked: boolean) => {
-    const value = checked ? "1" : "";
-    setTrial(value);
-    updateParams({ trial: value });
-  };
-
   const handleSortChange = (value: string) => {
     setSort(value);
     updateParams({ sort: value });
@@ -209,20 +209,14 @@ function TemplatesPageContent() {
     setSearchQuery("");
     setSelectedCategory("all");
     setPricing("all");
-    setTrial("");
     setSort("name");
     router.replace("/app/templates", { scroll: false });
   };
 
   const hasActiveFilters =
-    selectedCategory !== "all" ||
-    pricing !== "all" ||
-    trial !== "" ||
-    sort !== "name";
+    selectedCategory !== "all" || pricing !== "all" || sort !== "name";
 
-  const trialTemplates = templates.filter((t) => t.isTrial);
-  const paidTemplates = templates.filter((t) => !t.isTrial);
-
+  // Purchase flow: create paid greeting
   const handleConfirmPurchase = async () => {
     if (!selectedTemplate) return;
     setCreating(true);
@@ -243,26 +237,40 @@ function TemplatesPageContent() {
       }
 
       const greeting = await res.json();
-
-      if (selectedTemplate.isTrial) {
-        router.push(`/app/greetings/${greeting.id}/edit`);
-      } else {
-        router.push(`/app/greetings/${greeting.id}/pay`);
-      }
+      router.push(`/app/greetings/${greeting.id}/pay`);
     } catch (error) {
       console.error(error);
       setCreating(false);
     }
   };
 
-  const handleTryTemplate = (template: Template) => {
-    if (template.isTrial && hasTrialGreeting) {
-      toast.error(
-        "You already have a trial greeting. Upgrade to a paid template for full features!",
-      );
+  // Try Free flow: create trial greeting
+  const handleTryFree = async (template: Template) => {
+    if (trialTemplateIds.has(template.id)) {
+      toast.error("You already have a trial greeting for this template.");
       return;
     }
-    setSelectedTemplate(template);
+    setCreating(true);
+    try {
+      const res = await fetch("/api/greetings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ templateId: template.id, asTrial: true }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data?.error) toast.error(data.error);
+        setCreating(false);
+        return;
+      }
+
+      const greeting = await res.json();
+      router.push(`/app/greetings/${greeting.id}/edit`);
+    } catch (error) {
+      console.error(error);
+      setCreating(false);
+    }
   };
 
   if (loading)
@@ -279,7 +287,7 @@ function TemplatesPageContent() {
         <div className="space-y-4">
           <Shimmer className="h-6 w-32" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 4 }).map((_, i) => (
               <TemplateCardSkeleton key={i} />
             ))}
           </div>
@@ -339,15 +347,6 @@ function TemplatesPageContent() {
         />
       </div>
 
-      {/* Trial toggle */}
-      <div>
-        <ToggleSwitch
-          checked={trial === "1"}
-          onChange={handleTrialChange}
-          label="Show Only Trial"
-        />
-      </div>
-
       {/* Clear */}
       {hasActiveFilters && (
         <button
@@ -379,7 +378,8 @@ function TemplatesPageContent() {
           <div className="min-w-0">
             <h1 className="text-3xl font-bold">Choose a Template</h1>
             <p className="text-gray-500 mt-1 text-sm">
-              Select a design to create your greeting card.
+              Select a design to create your greeting card. Every template is
+              free to try!
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
@@ -418,7 +418,7 @@ function TemplatesPageContent() {
           </div>
         </motion.div>
 
-        {/* Template grid — use templateKey as React key to force remount on filter change */}
+        {/* Template grid */}
         <div key={templateKey} className="space-y-8">
           {/* Error state */}
           {templatesError && (
@@ -455,55 +455,27 @@ function TemplatesPageContent() {
             </motion.div>
           )}
 
-          {/* Trial Templates Section */}
-          {trialTemplates.length > 0 && (
+          {/* All Templates — unified grid */}
+          {templates.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
-            >
-              <div className="flex items-center gap-2">
-                <Gift size={20} className="text-green-500" />
-                <h2 className="text-xl font-bold">Free Trial</h2>
-                <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2.5 py-0.5 rounded-full font-medium">
-                  Try for free
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {trialTemplates.map((template) => (
-                  <TemplateCard
-                    key={template.id}
-                    template={template}
-                    onPreview={setPreviewTemplate}
-                    onUse={handleTryTemplate}
-                    hasTrialGreeting={hasTrialGreeting}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* Paid Templates Section */}
-          {paidTemplates.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: trialTemplates.length > 0 ? 0.1 : 0 }}
               className="space-y-4"
             >
               <div className="flex items-center gap-2">
                 <Sparkles size={20} className="text-amber-500" />
-                <h2 className="text-xl font-bold">Premium Templates</h2>
+                <h2 className="text-xl font-bold">Templates</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paidTemplates.map((template) => (
+                {templates.map((template) => (
                   <TemplateCard
                     key={template.id}
                     template={template}
                     onPreview={setPreviewTemplate}
                     onUse={setSelectedTemplate}
+                    onTryFree={handleTryFree}
+                    hasActiveTrial={trialTemplateIds.has(template.id)}
                   />
                 ))}
               </div>
@@ -512,7 +484,7 @@ function TemplatesPageContent() {
         </div>
       </motion.div>
 
-      {/* Filter drawer (slides from left, shared mobile + desktop) */}
+      {/* Filter drawer (slides from right) */}
       <AnimatePresence>
         {filtersOpen && (
           <>
@@ -522,7 +494,7 @@ function TemplatesPageContent() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[60] bg-black/40"
+              className="fixed inset-0 z-60 bg-black/40"
               onClick={() => setFiltersOpen(false)}
             />
 
@@ -532,7 +504,7 @@ function TemplatesPageContent() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 350, damping: 35 }}
-              className="fixed inset-y-0 right-0 z-[70] w-72 max-w-[85vw] bg-white dark:bg-gray-950 shadow-2xl border-l border-gray-200 dark:border-gray-800 flex flex-col"
+              className="fixed inset-y-0 right-0 z-70 w-72 max-w-[85vw] bg-white dark:bg-gray-950 shadow-2xl border-l border-gray-200 dark:border-gray-800 flex flex-col"
             >
               {/* Drawer header */}
               <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700">
@@ -549,9 +521,7 @@ function TemplatesPageContent() {
               </div>
 
               {/* Drawer body */}
-              <div className="flex-1 overflow-y-auto p-5">
-                {filterContent}
-              </div>
+              <div className="flex-1 overflow-y-auto p-5">{filterContent}</div>
             </motion.aside>
           </>
         )}
@@ -564,7 +534,7 @@ function TemplatesPageContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100]"
+            className="fixed inset-0 z-100"
           >
             <div className="absolute inset-0 overflow-auto">
               {previewTemplate.componentSlug ? (
@@ -587,7 +557,7 @@ function TemplatesPageContent() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3 }}
               onClick={() => setPreviewTemplate(null)}
-              className="absolute top-4 right-4 z-[110] bg-black/50 hover:bg-black/70 text-white p-2.5 rounded-full transition-colors backdrop-blur-sm"
+              className="absolute top-4 right-4 z-110 bg-black/50 hover:bg-black/70 text-white p-2.5 rounded-full transition-colors backdrop-blur-sm"
             >
               <X size={20} />
             </motion.button>
@@ -601,75 +571,65 @@ function TemplatesPageContent() {
                 stiffness: 300,
                 damping: 30,
               }}
-              className="absolute bottom-0 left-0 right-0 z-[110] bg-gradient-to-t from-black/80 via-black/50 to-transparent pt-16 pb-6 px-5"
+              className="absolute bottom-0 left-0 right-0 z-110 bg-linear-to-t from-black/80 via-black/50 to-transparent pt-16 pb-6 px-5"
             >
               <div className="max-w-lg mx-auto flex items-end justify-between gap-4">
                 <div className="min-w-0">
                   <h4 className="text-white font-bold text-lg truncate">
                     {previewTemplate.name}
                   </h4>
-                  {previewTemplate.isTrial ? (
-                    <span className="text-green-400 text-sm font-medium">
-                      Free Trial
-                    </span>
-                  ) : (
-                    <span className="text-white/70 text-sm">
-                      {new Intl.NumberFormat("id-ID", {
-                        style: "currency",
-                        currency: "IDR",
-                        minimumFractionDigits: 0,
-                      }).format(previewTemplate.price)}
-                    </span>
-                  )}
+                  <span className="text-white/70 text-sm">
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                      minimumFractionDigits: 0,
+                    }).format(previewTemplate.price)}
+                  </span>
                 </div>
-                <motion.button
-                  onClick={() => {
-                    const tpl = previewTemplate;
-                    setPreviewTemplate(null);
-                    if (tpl.isTrial) {
-                      handleTryTemplate(tpl);
-                    } else {
+                <div className="flex gap-2 shrink-0">
+                  <motion.button
+                    onClick={() => {
+                      const tpl = previewTemplate;
+                      setPreviewTemplate(null);
+                      handleTryFree(tpl);
+                    }}
+                    disabled={trialTemplateIds.has(previewTemplate.id)}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="px-5 py-3 rounded-xl font-bold text-sm text-white bg-green-500 hover:bg-green-600 flex items-center gap-2 transition-colors shadow-lg disabled:opacity-50"
+                  >
+                    <Gift size={16} />
+                    {trialTemplateIds.has(previewTemplate.id)
+                      ? "Trial Active"
+                      : "Try Free"}
+                  </motion.button>
+                  <motion.button
+                    onClick={() => {
+                      const tpl = previewTemplate;
+                      setPreviewTemplate(null);
                       setSelectedTemplate(tpl);
-                    }
-                  }}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className={`shrink-0 px-6 py-3 rounded-xl font-bold text-sm text-white flex items-center gap-2 transition-colors shadow-lg ${
-                    previewTemplate.isTrial
-                      ? "bg-green-500 hover:bg-green-600"
-                      : "btn-theme"
-                  }`}
-                >
-                  {previewTemplate.isTrial ? (
-                    hasTrialGreeting ? (
-                      <>
-                        <Lock size={16} /> Trial Used
-                      </>
-                    ) : (
-                      <>
-                        <Gift size={16} /> Try Now — Free
-                      </>
-                    )
-                  ) : (
-                    <>
-                      <CreditCard size={16} /> Use Template
-                    </>
-                  )}
-                </motion.button>
+                    }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="px-5 py-3 rounded-xl font-bold text-sm text-white btn-theme flex items-center gap-2 transition-colors shadow-lg"
+                  >
+                    <CreditCard size={16} /> Use Template
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Payment / Trial Confirmation Modal */}
+      {/* Payment Confirmation Modal */}
       <AnimatePresence>
         {selectedTemplate && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             onClick={() => !creating && setSelectedTemplate(null)}
           >
             <motion.div
@@ -701,15 +661,10 @@ function TemplatesPageContent() {
                   </div>
                 )}
                 <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
-                <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
+                <div className="absolute bottom-4 left-5 right-5">
                   <h3 className="text-white text-xl font-bold drop-shadow-lg">
                     {selectedTemplate.name}
                   </h3>
-                  {selectedTemplate.isTrial && (
-                    <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                      FREE
-                    </span>
-                  )}
                 </div>
               </div>
 
@@ -719,9 +674,7 @@ function TemplatesPageContent() {
                     <span className="text-gray-500 flex items-center gap-2">
                       <FileImage size={14} /> Template
                     </span>
-                    <span className="font-medium">
-                      {selectedTemplate.name}
-                    </span>
+                    <span className="font-medium">{selectedTemplate.name}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-500 flex items-center gap-2">
@@ -731,58 +684,27 @@ function TemplatesPageContent() {
                       1 greeting generation
                     </span>
                   </div>
-                  {selectedTemplate.isTrial && (
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-500 flex items-center gap-2">
-                        <Lock size={14} /> Restrictions
-                      </span>
-                      <span className="font-medium text-amber-600 dark:text-amber-400">
-                        Limited features
-                      </span>
-                    </div>
-                  )}
                   <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between items-center">
                     <span className="font-medium">Total</span>
                     <span className="text-2xl font-bold text-theme-primary">
-                      {selectedTemplate.isTrial ? (
-                        <span className="text-green-600">Free</span>
-                      ) : (
-                        new Intl.NumberFormat("id-ID", {
-                          style: "currency",
-                          currency: "IDR",
-                          minimumFractionDigits: 0,
-                        }).format(selectedTemplate.price)
-                      )}
+                      {new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                        minimumFractionDigits: 0,
+                      }).format(selectedTemplate.price)}
                     </span>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 text-xs text-gray-500 space-y-1">
-                  {selectedTemplate.isTrial ? (
-                    <>
-                      <p>
-                        Your trial greeting will be published immediately with
-                        limited features. Custom logo, donations, and full
-                        sharing are locked.
-                      </p>
-                      <p>
-                        Upgrade anytime by choosing a paid template for the full
-                        experience.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p>
-                        By proceeding you will create a new greeting card from
-                        this template. You will be redirected to complete
-                        payment.
-                      </p>
-                      <p>
-                        Once paid, your greeting will be published with a
-                        permanent shareable link.
-                      </p>
-                    </>
-                  )}
+                  <p>
+                    By proceeding you will create a new greeting card from this
+                    template. You will be redirected to complete payment.
+                  </p>
+                  <p>
+                    Once paid, your greeting will be published with a permanent
+                    shareable link.
+                  </p>
                 </div>
 
                 <div className="flex gap-3">
@@ -800,18 +722,10 @@ function TemplatesPageContent() {
                     disabled={creating}
                     whileHover={{ scale: creating ? 1 : 1.02 }}
                     whileTap={{ scale: creating ? 1 : 0.98 }}
-                    className={`flex-2 py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-70 transition-colors ${
-                      selectedTemplate.isTrial
-                        ? "bg-green-500 hover:bg-green-600"
-                        : "btn-theme"
-                    }`}
+                    className="flex-2 py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-70 transition-colors btn-theme"
                   >
                     {creating ? (
                       <Loader2 className="animate-spin" size={18} />
-                    ) : selectedTemplate.isTrial ? (
-                      <>
-                        <Gift size={16} /> Generate Free Trial
-                      </>
                     ) : (
                       <>
                         <CreditCard size={16} /> Continue to Payment

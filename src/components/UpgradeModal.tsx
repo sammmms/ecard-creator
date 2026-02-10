@@ -1,10 +1,12 @@
 "use client";
 
+import { useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Check, X, Sparkles, CreditCard } from "lucide-react";
 import Button from "@/components/Button";
 import { useRouter } from "next/navigation";
 import * as anim from "@/lib/animations";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -29,6 +31,9 @@ export default function UpgradeModal({
   templatePrice,
 }: UpgradeModalProps) {
   const router = useRouter();
+
+  const handleEscape = useCallback(() => onClose(), [onClose]);
+  useEscapeKey(handleEscape, isOpen);
 
   const handleUpgrade = () => {
     onClose();

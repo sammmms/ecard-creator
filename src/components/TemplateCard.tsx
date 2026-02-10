@@ -1,11 +1,10 @@
 import { motion } from "framer-motion";
-import { Eye, Lock, Sparkles } from "lucide-react";
+import { Eye, Sparkles, Gift } from "lucide-react";
 
 export interface Template {
   id: string;
   name: string;
   price: number;
-  isTrial: boolean;
   previewImageUrl: string;
   configJson: string;
   componentSlug?: string | null;
@@ -18,14 +17,16 @@ interface TemplateCardProps {
   template: Template;
   onPreview: (template: Template) => void;
   onUse: (template: Template) => void;
-  hasTrialGreeting?: boolean;
+  onTryFree?: (template: Template) => void;
+  hasActiveTrial?: boolean;
 }
 
 export default function TemplateCard({
   template,
   onPreview,
   onUse,
-  hasTrialGreeting = false,
+  onTryFree,
+  hasActiveTrial = false,
 }: TemplateCardProps) {
   return (
     <motion.div
@@ -35,15 +36,6 @@ export default function TemplateCard({
       whileHover={{ y: -6, transition: { duration: 0.2 } }}
       className="glass-card rounded-xl overflow-hidden hover:shadow-xl transition-shadow group relative flex flex-col h-full"
     >
-      {/* Free badge for trial templates */}
-      {template.isTrial && (
-        <div className="absolute top-3 left-3 z-10">
-          <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-            FREE
-          </span>
-        </div>
-      )}
-
       <div className="aspect-video bg-gray-200 dark:bg-gray-800 relative overflow-hidden shrink-0">
         {template.previewImageUrl ? (
           <div
@@ -54,11 +46,7 @@ export default function TemplateCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-primary/10 to-accent/10 dark:from-primary/20 dark:to-accent/20">
-            {template.isTrial ? (
-              <Sparkles size={32} className="text-primary/40" />
-            ) : (
-              <Sparkles size={32} className="text-gray-400" />
-            )}
+            <Sparkles size={32} className="text-gray-400" />
           </div>
         )}
 
@@ -76,18 +64,9 @@ export default function TemplateCard({
             onClick={() => onUse(template)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            disabled={template.isTrial && hasTrialGreeting}
-            className={`px-4 py-2 rounded-full font-bold text-sm transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75 disabled:opacity-50 disabled:cursor-not-allowed ${
-              template.isTrial
-                ? "bg-green-500 text-white"
-                : "bg-white text-black hover:bg-gray-100"
-            }`}
+            className="bg-white text-black hover:bg-gray-100 px-4 py-2 rounded-full font-bold text-sm transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75"
           >
-            {template.isTrial
-              ? hasTrialGreeting
-                ? "Trial Used"
-                : "Try Now"
-              : "Use Template"}
+            Use Template
           </motion.button>
         </div>
       </div>
@@ -103,38 +82,13 @@ export default function TemplateCard({
         )}
 
         <div className="mt-1 mb-4 grow">
-          {template.isTrial ? (
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2">
-                <span className="text-green-600 dark:text-green-400 font-bold">
-                  Free
-                </span>
-                {hasTrialGreeting && (
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <Lock size={10} /> Already used
-                  </span>
-                )}
-              </div>
-              {template.premiumPrice && (
-                <span className="text-xs text-gray-400">
-                  or unlock for{" "}
-                  {new Intl.NumberFormat("id-ID", {
-                    style: "currency",
-                    currency: "IDR",
-                    minimumFractionDigits: 0,
-                  }).format(template.premiumPrice)}
-                </span>
-              )}
-            </div>
-          ) : (
-            <p className="text-gray-500">
-              {new Intl.NumberFormat("id-ID", {
-                style: "currency",
-                currency: "IDR",
-                minimumFractionDigits: 0,
-              }).format(template.price)}
-            </p>
-          )}
+          <p className="text-gray-500">
+            {new Intl.NumberFormat("id-ID", {
+              style: "currency",
+              currency: "IDR",
+              minimumFractionDigits: 0,
+            }).format(template.price)}
+          </p>
         </div>
 
         {/* Mobile Actions Footer */}
@@ -145,22 +99,37 @@ export default function TemplateCard({
           >
             <Eye size={14} /> Preview
           </button>
+          {onTryFree && (
+            <button
+              onClick={() => onTryFree(template)}
+              disabled={hasActiveTrial}
+              className="flex-1 py-2 px-3 rounded-lg bg-green-500 text-white text-xs font-bold hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+            >
+              <Gift size={12} />
+              {hasActiveTrial ? "Trial Active" : "Try Free"}
+            </button>
+          )}
           <button
             onClick={() => onUse(template)}
-            disabled={template.isTrial && hasTrialGreeting}
-            className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-              template.isTrial
-                ? "bg-green-500 text-white hover:bg-green-600"
-                : "bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200"
-            }`}
+            className="flex-1 py-2 px-3 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-bold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
           >
-            {template.isTrial
-              ? hasTrialGreeting
-                ? "Trial Used"
-                : "Try Now"
-              : "Use Template"}
+            Use Template
           </button>
         </div>
+
+        {/* Desktop Try Free button (always visible below card info) */}
+        {onTryFree && (
+          <div className="hidden md:block pt-3 border-t border-gray-100 dark:border-white/10 mt-auto">
+            <button
+              onClick={() => onTryFree(template)}
+              disabled={hasActiveTrial}
+              className="w-full py-2 px-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-bold hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+            >
+              <Gift size={12} />
+              {hasActiveTrial ? "Trial Active" : "Try Free"}
+            </button>
+          </div>
+        )}
       </div>
     </motion.div>
   );

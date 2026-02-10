@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { writeFile, unlink, mkdir } from "node:fs/promises";
 import path from "node:path";
+import sharp from "sharp";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
@@ -32,15 +33,21 @@ export async function POST(req: Request) {
       return new NextResponse("File too large. Maximum 2MB", { status: 400 });
     }
 
-    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-    const filename = `${session.user.id}_${Date.now()}_${crypto.randomUUID().slice(0, 8)}.${ext}`;
+    const filename = `${session.user.id}_${Date.now()}_${crypto.randomUUID().slice(0, 8)}.jpg`;
 
     // Ensure uploads directory exists
     await mkdir(UPLOAD_DIR, { recursive: true });
 
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(path.join(UPLOAD_DIR, filename), buffer);
+    const rawBuffer = Buffer.from(bytes);
+
+    // Always compress with sharp — resize max 1200px wide, JPEG quality 80
+    const compressed = await sharp(rawBuffer)
+      .resize(1200, 1200, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 80 })
+      .toBuffer();
+
+    await writeFile(path.join(UPLOAD_DIR, filename), compressed);
 
     return NextResponse.json({ url: `/api/uploads/${filename}` });
   } catch (error) {
