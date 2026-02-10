@@ -18,6 +18,13 @@ export async function GET() {
     include: {
       template: true,
       payment: true,
+      _count: {
+        select: {
+          publicSubmissions: true,
+          donationPayments: true,
+          events: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -73,6 +80,7 @@ export async function POST(req: Request) {
         templateId,
         slug,
         title: `CNY Greeting - ${template.name}`,
+        submissionsEnabled: true,
         isTrial,
         trialExpiresAt: isTrial ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : undefined,
         status: isTrial ? "published" : "draft",

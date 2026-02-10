@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Check, X, Sparkles } from "lucide-react";
+import { Lock, Check, X, Sparkles, CreditCard } from "lucide-react";
 import Button from "@/components/Button";
 import { useRouter } from "next/navigation";
 import * as anim from "@/lib/animations";
@@ -10,12 +10,14 @@ interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
   trigger?: string;
+  greetingId?: string;
+  templatePrice?: number | null;
 }
 
 const FEATURES = [
   "Custom company logo & branding",
   "Shareable links without watermark",
-  "Digital Angpao (donation) feature",
+  "Digital Wishes (donation) feature",
   "Access to all premium templates",
   "WhatsApp & QR sharing",
 ];
@@ -23,12 +25,21 @@ const FEATURES = [
 export default function UpgradeModal({
   isOpen,
   onClose,
+  greetingId,
+  templatePrice,
 }: UpgradeModalProps) {
   const router = useRouter();
 
   const handleUpgrade = () => {
     onClose();
     router.push("/app/templates");
+  };
+
+  const handleUnlockTemplate = () => {
+    if (greetingId) {
+      onClose();
+      router.push(`/app/greetings/${greetingId}/pay?upgrade=true`);
+    }
   };
 
   return (
@@ -38,7 +49,7 @@ export default function UpgradeModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
           onClick={onClose}
         >
           <motion.div
@@ -50,7 +61,8 @@ export default function UpgradeModal({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Decorative top gradient */}
-            <div className="absolute top-0 left-0 right-0 h-32 bg-theme-gradient opacity-90" />
+            <div className="absolute top-0 left-0 right-0 h-44 bg-theme-gradient opacity-90" />
+            <div className="absolute top-36 left-0 right-0 h-8 bg-gradient-to-b from-[var(--theme-accent)] to-transparent opacity-30" />
 
             {/* Close button */}
             <Button
@@ -101,20 +113,47 @@ export default function UpgradeModal({
                 ))}
               </div>
 
-              {/* CTA */}
-              <motion.button
-                onClick={handleUpgrade}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                className="w-full py-3.5 rounded-xl btn-theme text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-theme"
-              >
-                <Sparkles size={16} />
-                Choose a Template & Pay
-              </motion.button>
+              {/* Primary CTA: Unlock This Template (when greetingId + templatePrice available) */}
+              {greetingId && templatePrice ? (
+                <>
+                  <motion.button
+                    onClick={handleUnlockTemplate}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="w-full py-3.5 rounded-xl btn-theme text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-theme"
+                  >
+                    <CreditCard size={16} />
+                    Unlock This Template &mdash;{" "}
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                      minimumFractionDigits: 0,
+                    }).format(templatePrice)}
+                  </motion.button>
+
+                  <button
+                    onClick={handleUpgrade}
+                    className="mt-3 w-full px-5 py-2.5 text-sm text-gray-500 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Sparkles size={14} />
+                    Or choose a different template
+                  </button>
+                </>
+              ) : (
+                <motion.button
+                  onClick={handleUpgrade}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="w-full py-3.5 rounded-xl btn-theme text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-theme"
+                >
+                  <Sparkles size={16} />
+                  Choose a Template & Pay
+                </motion.button>
+              )}
 
               <button
                 onClick={onClose}
-                className="mt-3 text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                className="mt-3 px-5 py-2 text-sm text-gray-400 rounded-lg border border-transparent hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-all"
               >
                 Maybe later
               </button>

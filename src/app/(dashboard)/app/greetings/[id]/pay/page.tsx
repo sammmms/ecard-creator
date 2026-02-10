@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import { useRouter, useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, CheckCircle, CreditCard, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import * as anim from "@/lib/animations";
-import PageLoader from "@/components/PageLoader";
+import Shimmer from "@/components/Shimmer";
 import toast from "react-hot-toast";
 
 interface Payment {
@@ -27,23 +29,11 @@ interface Greeting {
 export default function PayPage() {
   const router = useRouter();
   const params = useParams();
-  const [greeting, setGreeting] = useState<Greeting | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: greeting, isLoading: loading, mutate } = useSWR<Greeting>(
+    `/api/greetings/${params.id}`,
+    fetcher,
+  );
   const [processing, setProcessing] = useState(false);
-
-  useEffect(() => {
-    fetch(`/api/greetings/${params.id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setGreeting(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Failed to load greeting");
-        setLoading(false);
-      });
-  }, [params.id]);
 
   const handlePay = async () => {
     setProcessing(true);
@@ -56,7 +46,7 @@ export default function PayPage() {
       if (data.checkoutUrl) {
         await fetch(`/api/payments/webhook?paymentId=${data.payment.id}`);
         toast.success("Payment successful!");
-        window.location.reload();
+        mutate();
       }
     } catch (error) {
       console.error(error);
@@ -65,7 +55,29 @@ export default function PayPage() {
     }
   };
 
-  if (loading) return <PageLoader />;
+  if (loading)
+    return (
+      <div className="max-w-xl mx-auto space-y-6">
+        <div className="space-y-2">
+          <Shimmer className="h-4 w-32" />
+          <Shimmer className="h-8 w-52" />
+          <Shimmer className="h-4 w-64" />
+        </div>
+        <div className="glass-card p-6 rounded-xl space-y-4">
+          <div className="flex justify-between items-center">
+            <Shimmer className="h-4 w-20" />
+            <Shimmer className="h-4 w-32" />
+          </div>
+          <div className="flex justify-between items-center">
+            <Shimmer className="h-4 w-12" />
+            <Shimmer className="h-6 w-28" />
+          </div>
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <Shimmer className="h-12 w-full rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
   if (!greeting) return <div>Greeting not found</div>;
 
   const isPaid =

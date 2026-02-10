@@ -2,13 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Share2, Heart } from "lucide-react";
 import Image from "next/image";
 import * as anim from "@/lib/animations";
-import ShareModal from "@/components/ShareModal";
 import Fireworks from "@/components/Fireworks";
-import SendWishModal from "@/components/SendWishModal";
-import FloatingWishes from "@/components/FloatingWishes";
+import { useGreetingPage } from "@/components/GreetingPageWrapper";
 
 interface GreetingData {
   id: string;
@@ -23,22 +20,6 @@ interface GreetingData {
   };
   donationEnabled: boolean;
   donationMode: string;
-}
-
-interface WishData {
-  id: string;
-  name: string | null;
-  comment: string | null;
-  createdAt: string;
-  donationAmount: number | null;
-}
-
-interface PaymentMethodsData {
-  qrisImages: Array<{ label: string; url: string }>;
-  ewalletType: string | null;
-  ewalletNumber: string | null;
-  instructionsText: string | null;
-  displayName: string | null;
 }
 
 interface Asset {
@@ -101,15 +82,9 @@ function SparkleOverlay() {
 export default function GreetingRenderer({
   greeting,
   isPreview = false,
-  wishes: initialWishes = [],
-  paymentMethods = null,
-  donationMode,
 }: {
   greeting: GreetingData;
   isPreview?: boolean;
-  wishes?: WishData[];
-  paymentMethods?: PaymentMethodsData | null;
-  donationMode?: string;
 }) {
   const config = useMemo<TemplateConfig | null>(() => {
     if (greeting.template?.configJson) {
@@ -122,9 +97,7 @@ export default function GreetingRenderer({
     }
     return null;
   }, [greeting.template]);
-  const [showDonation, setShowDonation] = useState(false);
-  const [showShare, setShowShare] = useState(false);
-  const [wishes, setWishes] = useState<WishData[]>(initialWishes);
+  const { isPlaying, openUpgradeModal } = useGreetingPage();
   const [prefersReduced, setPrefersReduced] = useState(
     () =>
       typeof window !== "undefined" &&
@@ -141,10 +114,7 @@ export default function GreetingRenderer({
   if (!config) return null;
 
   const isTrial = greeting.isTrial === true;
-  const showFireworks = config.fireworks !== false && !prefersReduced;
-  const effectiveDonationMode = donationMode || greeting.donationMode || "none";
-  const showSendWish =
-    (greeting.submissionsEnabled || greeting.donationEnabled) && !isTrial;
+  const showFireworks = config.fireworks !== false && !prefersReduced && isPlaying;
 
   const newLocal =
     "absolute inset-0 bg-gradient-to-b from-white/90 via-white/80 to-white/90 backdrop-blur-xl";
@@ -168,9 +138,11 @@ export default function GreetingRenderer({
                 "linear-gradient(135deg, #8B0000 0%, #DC143C 25%, #B22222 50%, #FF4500 75%, #8B0000 100%)",
               backgroundSize: "400% 400%",
             }}
-            animate={{
-              backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
-            }}
+            animate={
+              isPlaying
+                ? { backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }
+                : {}
+            }
             transition={{
               duration: 12,
               repeat: Infinity,
@@ -184,7 +156,7 @@ export default function GreetingRenderer({
       {!prefersReduced && (
         <motion.div
           className="absolute inset-0 -z-25"
-          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          animate={isPlaying ? { opacity: [0.3, 0.6, 0.3] } : {}}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           style={{
             background:
@@ -211,7 +183,7 @@ export default function GreetingRenderer({
       />
 
       {/* Sparkle particles */}
-      {!prefersReduced && <SparkleOverlay />}
+      {!prefersReduced && isPlaying && <SparkleOverlay />}
 
       {/* Fireworks canvas */}
       {showFireworks && (
@@ -485,12 +457,12 @@ export default function GreetingRenderer({
           className="fixed top-0 left-0 right-0 bg-amber-500/95 backdrop-blur-sm text-white text-center py-2.5 text-sm z-50 font-medium shadow-lg"
         >
           This is a trial greeting.{" "}
-          <a
-            href="/app/templates"
+          <button
+            onClick={openUpgradeModal}
             className="underline underline-offset-2 font-bold hover:text-amber-100 transition-colors"
           >
-            Upgrade to unlock all features →
-          </a>
+            Upgrade to unlock all features &rarr;
+          </button>
         </motion.div>
       )}
 
@@ -500,9 +472,6 @@ export default function GreetingRenderer({
           Preview Mode — This is how your greeting will look
         </div>
       )}
-
-      {/* Floating Wishes */}
-      {!isPreview && wishes.length > 0 && <FloatingWishes wishes={wishes} />}
 
       {/* Main Card */}
       <motion.div
@@ -594,35 +563,6 @@ export default function GreetingRenderer({
             </span>
           </motion.div>
 
-          {/* Action Buttons */}
-          {!isPreview && (
-            <motion.div
-              className="flex justify-center gap-4 pt-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-            >
-              <motion.button
-                onClick={() => setShowShare(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-white/90 hover:bg-white text-gray-800 px-5 py-2.5 rounded-full text-sm font-medium transition shadow-lg backdrop-blur-sm border border-white/50"
-              >
-                <Share2 size={16} /> Share
-              </motion.button>
-
-              {showSendWish && (
-                <motion.button
-                  onClick={() => setShowDonation(true)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 bg-linear-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-5 py-2.5 rounded-full text-sm font-medium transition shadow-lg shadow-red-600/25"
-                >
-                  <Heart size={16} /> Send Wish
-                </motion.button>
-              )}
-            </motion.div>
-          )}
         </div>
       </motion.div>
 
@@ -639,26 +579,6 @@ export default function GreetingRenderer({
           </span>
         </motion.div>
       )}
-
-      {/* Send Wish Modal */}
-      <SendWishModal
-        isOpen={showDonation}
-        onClose={() => setShowDonation(false)}
-        greetingId={greeting.id}
-        donationEnabled={greeting.donationEnabled}
-        donationMode={effectiveDonationMode}
-        paymentMethods={paymentMethods || null}
-        onWishSent={(wish) => setWishes((prev) => [wish, ...prev])}
-      />
-
-      <ShareModal
-        isOpen={showShare}
-        onClose={() => setShowShare(false)}
-        url={typeof window !== "undefined" ? window.location.href : ""}
-        title={greeting.title}
-        isTrial={greeting.isTrial === true}
-        greetingId={greeting.id}
-      />
     </div>
   );
 }

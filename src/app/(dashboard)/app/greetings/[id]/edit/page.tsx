@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -18,7 +20,7 @@ import Image from "next/image";
 import Select from "@/components/Select";
 import UpgradeModal from "@/components/UpgradeModal";
 import Button from "@/components/Button";
-import PageLoader from "@/components/PageLoader";
+import Shimmer, { FormFieldSkeleton } from "@/components/Shimmer";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import * as anim from "@/lib/animations";
 import toast from "react-hot-toast";
@@ -36,40 +38,46 @@ interface Greeting {
   isTrial: boolean;
   trialExpiresAt: string | null;
   slug: string;
+  template?: {
+    componentSlug?: string;
+    premiumPrice?: number | null;
+  };
 }
 
 export default function EditGreetingPage() {
   const router = useRouter();
   const params = useParams();
-  const [greeting, setGreeting] = useState<Greeting | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: greeting, isLoading: loading } = useSWR<Greeting>(
+    `/api/greetings/${params.id}`,
+    fetcher,
+  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [formData, setFormData] = useState<Partial<Greeting>>({});
+  const [formInit, setFormInit] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeTrigger, setUpgradeTrigger] = useState("");
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const isTrial = greeting?.isTrial === true;
 
+  // Initialize form data once greeting loads
   useEffect(() => {
-    fetch(`/api/greetings/${params.id}`)
-      .then((res) => res.json())
-      .then((data: Greeting) => {
-        setGreeting(data);
-        setFormData({
-          title: data.title || "",
-          senderNameDefault: data.senderNameDefault || "",
-          messageDefault: data.messageDefault || "",
-          companyLogoUrl: data.companyLogoUrl || "",
-          layoutVariant: data.layoutVariant || "A",
-          submissionsEnabled: data.submissionsEnabled || false,
-          donationEnabled: data.donationEnabled || false,
-          donationMode: data.donationMode || "none",
-        });
-        setLoading(false);
+    if (greeting && !formInit) {
+      const isValentine = greeting.template?.componentSlug === "valentine-rose";
+      setFormData({
+        title: greeting.title || "",
+        senderNameDefault: greeting.senderNameDefault || "",
+        messageDefault: greeting.messageDefault || "",
+        companyLogoUrl: greeting.companyLogoUrl || "",
+        layoutVariant: greeting.layoutVariant || (isValentine ? "red" : "A"),
+        submissionsEnabled: greeting.submissionsEnabled || false,
+        donationEnabled: greeting.donationEnabled || false,
+        donationMode: greeting.donationMode || "none",
       });
-  }, [params.id]);
+      setFormInit(true);
+    }
+  }, [greeting, formInit]);
 
   const handleUpgradeTrigger = (trigger: string) => {
     setUpgradeTrigger(trigger);
@@ -138,7 +146,39 @@ export default function EditGreetingPage() {
     }
   };
 
-  if (loading) return <PageLoader />;
+  if (loading)
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="space-y-2">
+          <Shimmer className="h-4 w-32" />
+          <Shimmer className="h-8 w-48" />
+          <Shimmer className="h-4 w-64" />
+        </div>
+        <div className="glass-card p-6 rounded-xl space-y-5">
+          <div className="space-y-1.5">
+            <Shimmer className="h-4 w-28" />
+            <Shimmer className="h-20 w-full rounded-lg" />
+          </div>
+          <FormFieldSkeleton />
+          <FormFieldSkeleton />
+          <div className="space-y-1.5">
+            <Shimmer className="h-4 w-28" />
+            <Shimmer className="h-28 w-full rounded-lg" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <FormFieldSkeleton />
+            <FormFieldSkeleton />
+          </div>
+          <div className="space-y-3 pt-2">
+            <Shimmer className="h-6 w-48" />
+            <Shimmer className="h-6 w-48" />
+          </div>
+          <div className="pt-4 flex justify-end">
+            <Shimmer className="h-10 w-36 rounded-lg" />
+          </div>
+        </div>
+      </div>
+    );
   if (!greeting) return <div>Greeting not found</div>;
 
   return (
@@ -187,37 +227,48 @@ export default function EditGreetingPage() {
         )}
 
         {/* Trial expiry countdown */}
-        {isTrial && greeting.trialExpiresAt && (() => {
-          const expiresAt = new Date(greeting.trialExpiresAt);
-          const now = new Date();
-          const diffMs = expiresAt.getTime() - now.getTime();
-          const isExpired = diffMs <= 0;
-          const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        {isTrial &&
+          greeting.trialExpiresAt &&
+          (() => {
+            const expiresAt = new Date(greeting.trialExpiresAt);
+            const now = new Date();
+            const diffMs = expiresAt.getTime() - now.getTime();
+            const isExpired = diffMs <= 0;
+            const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
-          return (
-            <motion.div
-              variants={anim.fadeInUp}
-              className={`border rounded-xl p-4 text-sm flex items-center gap-3 ${
-                isExpired
-                  ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300"
-                  : daysLeft <= 2
-                    ? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-300"
-                    : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300"
-              }`}
-            >
-              <Clock size={16} className="shrink-0" />
-              <span>
-                {isExpired ? (
-                  <><strong>Trial expired.</strong> This greeting is no longer visible to the public. Upgrade to restore access.</>
-                ) : daysLeft === 1 ? (
-                  <><strong>Trial expires tomorrow.</strong> After expiry, the public link will stop working.</>
-                ) : (
-                  <><strong>Trial expires in {daysLeft} days.</strong> After expiry, the public link will stop working.</>
-                )}
-              </span>
-            </motion.div>
-          );
-        })()}
+            return (
+              <motion.div
+                variants={anim.fadeInUp}
+                className={`border rounded-xl p-4 text-sm flex items-center gap-3 ${
+                  isExpired
+                    ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300"
+                    : daysLeft <= 2
+                      ? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-300"
+                      : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300"
+                }`}
+              >
+                <Clock size={16} className="shrink-0" />
+                <span>
+                  {isExpired ? (
+                    <>
+                      <strong>Trial expired.</strong> This greeting is no longer
+                      visible to the public. Upgrade to restore access.
+                    </>
+                  ) : daysLeft === 1 ? (
+                    <>
+                      <strong>Trial expires tomorrow.</strong> After expiry, the
+                      public link will stop working.
+                    </>
+                  ) : (
+                    <>
+                      <strong>Trial expires in {daysLeft} days.</strong> After
+                      expiry, the public link will stop working.
+                    </>
+                  )}
+                </span>
+              </motion.div>
+            );
+          })()}
 
         <motion.form
           onSubmit={handleSubmit}
@@ -231,7 +282,7 @@ export default function EditGreetingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
             >
-              <label className="block text-sm font-medium mb-1.5 flex items-center gap-2">
+              <label className="text-sm font-medium mb-1.5 flex items-center gap-2">
                 Company Logo
                 {isTrial && <Lock size={12} className="text-amber-500" />}
               </label>
@@ -355,7 +406,7 @@ export default function EditGreetingPage() {
               transition={{ delay: 0.25 }}
             >
               <div>
-                <label className="block text-sm font-medium mb-1.5 flex items-center gap-2">
+                <label className="text-sm font-medium mb-1.5 flex items-center gap-2">
                   Layout Variant
                   {isTrial && <Lock size={12} className="text-amber-500" />}
                 </label>
@@ -365,24 +416,32 @@ export default function EditGreetingPage() {
                     onClick={() => handleUpgradeTrigger("layout_variant")}
                     className="w-full p-2.5 border rounded-lg dark:bg-gray-800 dark:border-gray-700 text-left text-sm text-gray-400 flex items-center justify-between opacity-60"
                   >
-                    <span>Variant A</span>
+                    <span>{greeting.template?.componentSlug === "valentine-rose" ? "Red" : "Variant A"}</span>
                     <Lock size={14} className="text-amber-500" />
                   </button>
                 ) : (
                   <Select
-                    value={formData.layoutVariant || "A"}
+                    value={formData.layoutVariant || (greeting.template?.componentSlug === "valentine-rose" ? "red" : "A")}
                     onChange={(value) =>
                       setFormData({ ...formData, layoutVariant: value })
                     }
-                    options={[
-                      { value: "A", label: "Variant A" },
-                      { value: "B", label: "Variant B" },
-                    ]}
+                    options={
+                      greeting.template?.componentSlug === "valentine-rose"
+                        ? [
+                            { value: "red", label: "Red" },
+                            { value: "pink", label: "Pink" },
+                            { value: "maroon", label: "Maroon" },
+                          ]
+                        : [
+                            { value: "A", label: "Variant A" },
+                            { value: "B", label: "Variant B" },
+                          ]
+                    }
                   />
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1.5 flex items-center gap-2">
+                <label className="text-sm font-medium mb-1.5 flex items-center gap-2">
                   Donation Mode
                   {isTrial && <Lock size={12} className="text-amber-500" />}
                 </label>
@@ -451,7 +510,7 @@ export default function EditGreetingPage() {
           </div>
 
           <motion.div
-            className="pt-4 flex items-center justify-between"
+            className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35 }}
@@ -459,7 +518,7 @@ export default function EditGreetingPage() {
             <Link
               href={`/g/${greeting.slug}`}
               target="_blank"
-              className="text-sm text-gray-500 hover:text-primary flex items-center gap-1.5 transition-colors"
+              className="text-sm text-gray-500 hover:text-primary flex items-center justify-center gap-1.5 transition-colors"
             >
               <Eye size={14} /> Preview public page
             </Link>
@@ -469,7 +528,7 @@ export default function EditGreetingPage() {
               disabled={saving}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className={`px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-colors ${
+              className={`px-6 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors ${
                 saved ? "bg-green-600 text-white" : "btn-theme text-white"
               }`}
             >
@@ -492,6 +551,8 @@ export default function EditGreetingPage() {
         isOpen={showUpgrade}
         onClose={() => setShowUpgrade(false)}
         trigger={upgradeTrigger}
+        greetingId={greeting.id}
+        templatePrice={greeting.template?.premiumPrice}
       />
     </>
   );

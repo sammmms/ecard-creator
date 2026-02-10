@@ -171,7 +171,7 @@ export default function SendWishModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
           onClick={handleClose}
         >
           <motion.div
@@ -376,7 +376,7 @@ export default function SendWishModal({
                       disabled={!canSubmit}
                       whileHover={canSubmit ? { scale: 1.01 } : {}}
                       whileTap={canSubmit ? { scale: 0.98 } : {}}
-                      className="w-full py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition disabled:opacity-40 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 shadow-lg shadow-red-600/20"
+                      className="w-full py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition disabled:opacity-40 bg-linear-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 shadow-lg shadow-red-600/20"
                     >
                       <Send size={16} />
                       {includeDonation && amount
@@ -395,10 +395,7 @@ export default function SendWishModal({
                     exit={{ opacity: 0 }}
                     className="p-10 flex flex-col items-center gap-3"
                   >
-                    <Loader2
-                      size={32}
-                      className="animate-spin text-red-500"
-                    />
+                    <Loader2 size={32} className="animate-spin text-red-500" />
                     <p className="text-sm text-gray-500">
                       Sending your wish...
                     </p>
@@ -483,7 +480,11 @@ export default function SendWishModal({
                           <code className="bg-white px-4 py-2 rounded-lg border border-gray-200 text-lg font-mono font-bold text-gray-800">
                             {selectedMethodData.detail}
                           </code>
-                          <Button variant="icon" size="md" onClick={handleCopyNumber}>
+                          <Button
+                            variant="icon"
+                            size="md"
+                            onClick={handleCopyNumber}
+                          >
                             {copied ? (
                               <Check size={18} className="text-green-500" />
                             ) : (
@@ -495,8 +496,7 @@ export default function SendWishModal({
 
                       {amount && (
                         <p className="text-lg font-bold text-red-600">
-                          Rp{" "}
-                          {parseInt(amount, 10).toLocaleString("id-ID")}
+                          Rp {parseInt(amount, 10).toLocaleString("id-ID")}
                         </p>
                       )}
 
@@ -507,7 +507,12 @@ export default function SendWishModal({
                       )}
                     </div>
 
-                    <Button variant="secondary" size="lg" fullWidth onClick={handleClose}>
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      fullWidth
+                      onClick={handleClose}
+                    >
                       Done
                     </Button>
                   </motion.div>
