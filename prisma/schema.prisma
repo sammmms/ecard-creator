@@ -32,6 +32,8 @@ model Template {
   category        String?
   description     String?
   premiumPrice    Int?
+  extensionMonths Int      @default(6)
+  extensionPrice  Int      @default(15000)
 
   greetings       Greeting[]
 }
@@ -54,13 +56,15 @@ model Greeting {
   musicTrackId      String?
   viewCount         Int      @default(0)
   maxFreeViews      Int      @default(75)
+  expiresAt         DateTime?
+  isExpired         Boolean  @default(false)
   status            String   @default("draft") // "draft", "pending_payment", "published"
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   user              User     @relation(fields: [userId], references: [id])
   template          Template @relation(fields: [templateId], references: [id])
-  payment           Payment? // One-to-one for generation payment
+  payments          Payment[]
   donationPayments  DonationPayment[]
   events            Event[]
   publicSubmissions PublicSubmission[]
@@ -70,11 +74,12 @@ model Greeting {
 model Payment {
   id          String   @id @default(cuid())
   userId      String
-  greetingId  String   @unique
+  greetingId  String
   amount      Int
   currency    String   @default("IDR")
   provider    String   @default("xendit")
   status      String   @default("pending") // "pending", "paid", "failed", "expired"
+  type        String   @default("purchase") // "purchase", "upgrade", "extension"
   externalRef String?
   checkoutUrl String?
   createdAt   DateTime @default(now())
@@ -104,20 +109,22 @@ model ReceiverConfig {
 }
 
 model DonationPayment {
-  id          String   @id @default(cuid())
-  greetingId  String
-  amount      Int
-  currency    String   @default("IDR")
-  status      String   @default("pending")
-  provider    String   @default("xendit")
-  externalRef String?
-  checkoutUrl String?
-  donorName   String?
+  id           String   @id @default(cuid())
+  greetingId   String
+  submissionId String?  @unique
+  amount       Int
+  currency     String   @default("IDR")
+  status       String   @default("pending")
+  provider     String   @default("xendit")
+  externalRef  String?
+  checkoutUrl  String?
+  donorName    String?
   donorMessage String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  greeting    Greeting @relation(fields: [greetingId], references: [id])
+  greeting     Greeting         @relation(fields: [greetingId], references: [id])
+  submission   PublicSubmission? @relation(fields: [submissionId], references: [id])
 }
 
 model Event {
@@ -131,14 +138,15 @@ model Event {
 }
 
 model PublicSubmission {
-  id         String   @id @default(cuid())
-  greetingId String
-  name       String?
-  comment    String?
-  imageUrl   String?
-  createdAt  DateTime @default(now())
+  id              String            @id @default(cuid())
+  greetingId      String
+  name            String?
+  comment         String?
+  imageUrl        String?
+  createdAt       DateTime          @default(now())
 
-  greeting   Greeting @relation(fields: [greetingId], references: [id])
+  greeting        Greeting          @relation(fields: [greetingId], references: [id])
+  donationPayment DonationPayment?
 }
 
 model GreetingView {
