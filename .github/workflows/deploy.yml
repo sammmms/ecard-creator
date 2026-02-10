@@ -67,6 +67,6 @@ jobs:
             npm run build
 
             echo "==> Restarting PM2 process..."
-            pm2ripin pm2 restart ecard-next
+            pm2ripin restart ecard-next
 
             echo "==> Deploy complete!"
