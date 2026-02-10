@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     "Bizapps",
   ],
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || "https://bizapps.id",
+    process.env.NEXT_PUBLIC_BASE_URL || "https://ecard.bizapps.id",
   ),
   openGraph: {
     title: "Bizapps.id — Digital Greeting Cards",
@@ -74,12 +74,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased`}
       >
-        <ThemeProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <ThemeProvider>
             <ToastProvider />
             {children}
-          </AuthProvider>
-        </ThemeProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

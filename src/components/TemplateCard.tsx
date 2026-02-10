@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { Eye, Lock, Sparkles } from "lucide-react";
-import * as anim from "@/lib/animations";
 
 export interface Template {
   id: string;
@@ -10,6 +9,9 @@ export interface Template {
   previewImageUrl: string;
   configJson: string;
   componentSlug?: string | null;
+  description?: string | null;
+  category?: string | null;
+  premiumPrice?: number | null;
 }
 
 interface TemplateCardProps {
@@ -27,7 +29,9 @@ export default function TemplateCard({
 }: TemplateCardProps) {
   return (
     <motion.div
-      variants={anim.staggerItem}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
       whileHover={{ y: -6, transition: { duration: 0.2 } }}
       className="glass-card rounded-xl overflow-hidden hover:shadow-xl transition-shadow group relative flex flex-col h-full"
     >
@@ -90,15 +94,35 @@ export default function TemplateCard({
 
       <div className="p-4 flex flex-col grow">
         <h3 className="text-lg font-bold">{template.name}</h3>
+
+        {/* Description */}
+        {template.description && (
+          <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">
+            {template.description}
+          </p>
+        )}
+
         <div className="mt-1 mb-4 grow">
           {template.isTrial ? (
-            <div className="flex items-center gap-2">
-              <span className="text-green-600 dark:text-green-400 font-bold">
-                Free
-              </span>
-              {hasTrialGreeting && (
-                <span className="text-xs text-gray-400 flex items-center gap-1">
-                  <Lock size={10} /> Already used
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-green-600 dark:text-green-400 font-bold">
+                  Free
+                </span>
+                {hasTrialGreeting && (
+                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <Lock size={10} /> Already used
+                  </span>
+                )}
+              </div>
+              {template.premiumPrice && (
+                <span className="text-xs text-gray-400">
+                  or unlock for{" "}
+                  {new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                    minimumFractionDigits: 0,
+                  }).format(template.premiumPrice)}
                 </span>
               )}
             </div>
