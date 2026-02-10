@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Button from "@/components/Button";
@@ -13,7 +14,16 @@ import toast from "react-hot-toast";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const { logoIcon, logoTextDark } = useTheme();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      router.replace("/app");
+    }
+  }, [status, session, router]);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",

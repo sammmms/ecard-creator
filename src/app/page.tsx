@@ -136,9 +136,7 @@ export default function Home() {
                 </Link>
                 <button
                   onClick={() =>
-                    signOut({
-                      callbackUrl: `${window.location.origin}/login`,
-                    })
+                    signOut({ callbackUrl: "/login" })
                   }
                   className="p-2.5 sm:px-4 sm:py-2 rounded-full text-sm font-medium hover:bg-gray-100 dark:hover:bg-white/10 transition flex items-center gap-1.5 text-gray-600 dark:text-gray-400"
                   aria-label="Sign out"

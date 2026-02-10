@@ -170,7 +170,7 @@ export default function DashboardShell({
         <SettingsDropdown />
         <button
           onClick={() =>
-            signOut({ callbackUrl: `${window.location.origin}/login` })
+            signOut({ callbackUrl: "/login" })
           }
           className="flex items-center gap-2 md:gap-2.5 px-2.5 md:px-3 py-1 md:py-1.5 w-full text-[10px] md:text-[11px] font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
         >

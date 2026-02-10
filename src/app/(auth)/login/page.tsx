@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useRef } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -25,11 +25,19 @@ export default function LoginPage() {
 function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   const { logoIcon, logoTextDark } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const toastShownRef = useRef(false);
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      router.replace("/app");
+    }
+  }, [status, session, router]);
 
   // Show contextual toasts based on redirect reason
   useEffect(() => {
@@ -58,7 +66,8 @@ function LoginPageInner() {
       setIsLoading(false);
     } else {
       toast.success("Welcome back!");
-      router.push("/app");
+      const callback = searchParams.get("callbackUrl") || "/app";
+      router.push(callback);
     }
   };
 
