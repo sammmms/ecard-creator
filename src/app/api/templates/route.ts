@@ -11,11 +11,19 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
+
+  // Single template by ID
+  const id = searchParams.get("id");
+  if (id) {
+    const template = await db.template.findUnique({ where: { id } });
+    if (!template) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json(template);
+  }
+
   const event = searchParams.get("event");
   const category = searchParams.get("category");
   const search = searchParams.get("search");
   const pricing = searchParams.get("pricing"); // "free" | "paid"
-  const trial = searchParams.get("trial"); // "1" = only trial, "0" = hide trial
   const sort = searchParams.get("sort"); // "price_asc" | "price_desc" | "name"
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,10 +34,6 @@ export async function GET(req: Request) {
   // Pricing filter
   if (pricing === "free") where.price = 0;
   else if (pricing === "paid") where.price = { gt: 0 };
-
-  // Trial filter
-  if (trial === "1") where.isTrial = true;
-  else if (trial === "0") where.isTrial = false;
 
   // Search via Prisma contains
   if (search) {

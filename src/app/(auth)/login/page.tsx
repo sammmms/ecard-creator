@@ -31,11 +31,15 @@ function LoginPageInner() {
   const [isLoading, setIsLoading] = useState(false);
   const toastShownRef = useRef(false);
 
-  // Show success toast if redirected from registration
+  // Show contextual toasts based on redirect reason
   useEffect(() => {
-    if (searchParams.get("registered") === "true" && !toastShownRef.current) {
+    if (toastShownRef.current) return;
+    if (searchParams.get("registered") === "true") {
       toastShownRef.current = true;
       toast.success("Account created! Please sign in.");
+    } else if (searchParams.get("reason") === "session_expired") {
+      toastShownRef.current = true;
+      toast.error("Your session has expired. Please sign in again.");
     }
   }, [searchParams]);
 

@@ -3,6 +3,7 @@ import db from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { nanoid } from "nanoid";
+import { GreetingStatus } from "@/lib/constants";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -17,7 +18,7 @@ export async function GET() {
     },
     include: {
       template: true,
-      payment: true,
+      payments: true,
       _count: {
         select: {
           publicSubmissions: true,
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { templateId } = await req.json();
+    const { templateId, asTrial } = await req.json();
 
     if (!templateId) {
       return new NextResponse("Template ID required", { status: 400 });
@@ -56,15 +57,21 @@ export async function POST(req: Request) {
       return new NextResponse("Template not found", { status: 404 });
     }
 
-    // If trial template, enforce max 1 trial greeting per user
-    if (template.isTrial) {
+    const isTrial = asTrial === true;
+
+    // If creating a trial greeting, enforce max 1 active trial per user per template
+    if (isTrial) {
       const existingTrial = await db.greeting.findFirst({
-        where: { userId: session.user.id, isTrial: true },
+        where: {
+          userId: session.user.id,
+          templateId,
+          isTrial: true,
+        },
       });
       if (existingTrial) {
         return NextResponse.json(
-          { error: "You already have a trial greeting", existingId: existingTrial.id },
-          { status: 400 }
+          { error: "You already have a trial greeting for this template", existingId: existingTrial.id },
+          { status: 400 },
         );
       }
     }
@@ -72,18 +79,16 @@ export async function POST(req: Request) {
     // Generate a unique slug
     const slug = nanoid(10);
 
-    const isTrial = template.isTrial;
-
     const greeting = await db.greeting.create({
       data: {
         userId: session.user.id,
         templateId,
         slug,
-        title: `CNY Greeting - ${template.name}`,
+        title: `Greeting - ${template.name}`,
         submissionsEnabled: true,
         isTrial,
         trialExpiresAt: isTrial ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : undefined,
-        status: isTrial ? "published" : "draft",
+        status: isTrial ? GreetingStatus.PUBLISHED : GreetingStatus.DRAFT,
       },
     });
 

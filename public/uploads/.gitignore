@@ -1,0 +1,4 @@
+# Ignore user-uploaded files
+# Note: This .gitignore file itself should be committed to preserve the directory in git
+*
+!.gitignore

@@ -1,65 +1,66 @@
 import { NextResponse } from "next/server";
+import { completePayment } from "@/lib/payment-service";
 import db from "@/lib/db";
 
-// This is a MOCK webhook handler. In real app, it verifies Xendit signature.
+/**
+ * Webhook handler for payment provider callbacks.
+ *
+ * TODO: When integrating Xendit:
+ *   - Verify the X-CALLBACK-TOKEN header against your Xendit callback token
+ *   - Parse the Xendit webhook payload (external_id, status, etc.)
+ *   - Match by externalRef instead of paymentId
+ *   - Only process "PAID" or "SETTLED" statuses
+ *   - Return 200 immediately to avoid Xendit retries
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { externalRef } = body;
-    // Xendit usually sends "status": "PAID" or "SETTLED" keys etc.
-    // For our mock: { paymentId: string } or { externalRef: string }
 
-    let payment;
+    // TODO: Replace with Xendit webhook signature verification
+    // const callbackToken = req.headers.get("x-callback-token");
+    // if (callbackToken !== process.env.XENDIT_CALLBACK_TOKEN) {
+    //   return new NextResponse("Invalid signature", { status: 401 });
+    // }
+
+    let paymentId: string | undefined;
+
     if (body.paymentId) {
-      payment = await db.payment.findUnique({ where: { id: body.paymentId } });
-    } else if (externalRef) {
-      payment = await db.payment.findFirst({ where: { externalRef } });
+      paymentId = body.paymentId;
+    } else if (body.externalRef) {
+      // TODO: This will be the primary lookup method with Xendit
+      const payment = await db.payment.findFirst({
+        where: { externalRef: body.externalRef },
+      });
+      paymentId = payment?.id;
     }
 
-    if (!payment) {
+    if (!paymentId) {
       return new NextResponse("Payment not found", { status: 404 });
     }
 
-    // Mark payment as paid
-    const updatedPayment = await db.payment.update({
-      where: { id: payment.id },
-      data: { status: "paid" },
-    });
-
-    // Mark greeting as published
-    await db.greeting.update({
-      where: { id: payment.greetingId },
-      data: { status: "published" },
-    });
-
-    return NextResponse.json({ success: true, payment: updatedPayment });
+    const result = await completePayment(paymentId);
+    return NextResponse.json({ success: result.success });
   } catch (error) {
     console.error("[PAYMENT_WEBHOOK]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    const message = error instanceof Error ? error.message : "Internal Error";
+    return new NextResponse(message, { status: 500 });
   }
 }
 
-// Helper GET for manual testing: /api/payments/webhook?paymentId=...
+/**
+ * GET handler for manual/mock testing.
+ * TODO: Remove this endpoint when real payment provider is integrated.
+ */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const paymentId = searchParams.get("paymentId");
   if (!paymentId) return new NextResponse("Missing paymentId", { status: 400 });
 
   try {
-    const payment = await db.payment.findUnique({ where: { id: paymentId } });
-    if (!payment) return new NextResponse("Not found", { status: 404 });
-
-    await db.payment.update({
-      where: { id: paymentId },
-      data: { status: "paid" },
-    });
-    await db.greeting.update({
-      where: { id: payment.greetingId },
-      data: { status: "published" },
-    });
-
-    return NextResponse.json({ success: true, status: "paid" });
-  } catch {
-    return new NextResponse("Error", { status: 500 });
+    const result = await completePayment(paymentId);
+    return NextResponse.json({ success: result.success });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error";
+    return new NextResponse(message, { status: 500 });
   }
 }

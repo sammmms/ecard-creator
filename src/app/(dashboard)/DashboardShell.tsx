@@ -8,13 +8,17 @@ import {
   LayoutDashboard,
   FileImage,
   Layers,
+  Heart,
   BarChart3,
   Settings,
   LogOut,
   Menu,
   X,
+  Bell,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 import Button from "@/components/Button";
@@ -25,7 +29,9 @@ const navItems = [
   { href: "/app", label: "Overview", icon: LayoutDashboard },
   { href: "/app/templates", label: "Templates", icon: FileImage },
   { href: "/app/greetings", label: "My Greetings", icon: Layers },
+  { href: "/app/wishes", label: "Wishes", icon: Heart },
   { href: "/app/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/app/notifications", label: "Notifications", icon: Bell },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
@@ -38,6 +44,14 @@ export default function DashboardShell({
   const { data: session } = useSession();
   const { logoIcon, logoText, logoTextDark, isDark } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Fetch notification unread count (refreshes on navigation)
+  const { data: notifData } = useSWR<{ unreadCount: number }>(
+    "/api/notifications?countOnly=true",
+    fetcher,
+    { dedupingInterval: 5000, revalidateOnFocus: false },
+  );
+  const unreadCount = notifData?.unreadCount ?? 0;
 
   /* ── Swipe to open/close sidebar on mobile ── */
   const handleTouchEvents = useCallback(() => {
@@ -126,6 +140,11 @@ export default function DashboardShell({
                 )}
                 <Icon size={18} />
                 {item.label}
+                {item.label === "Notifications" && unreadCount > 0 && (
+                  <span className="ml-auto bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
               </Link>
             </motion.div>
           );

@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { TemplateProps } from "@/types/template";
 import { useGreetingPage } from "@/components/GreetingPageWrapper";
+import InlineEditable from "@/components/InlineEditable";
 
 const PETAL_COLORS = ["#FFB7C5", "#FFC0CB", "#FF69B4", "#ffffff"];
 
@@ -75,6 +77,48 @@ function CherryBlossomOverlay() {
   );
 }
 
+// --- Red sparkle dots ---
+function CrimsonSparkles() {
+  const [sparkles] = useState(() =>
+    Array.from({ length: 18 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 2.5 + 1.5,
+      delay: Math.random() * 5,
+      duration: Math.random() * 3 + 2.5,
+    })),
+  );
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-2">
+      {sparkles.map((s) => (
+        <motion.div
+          key={s.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            width: s.size,
+            height: s.size,
+            background: "radial-gradient(circle, #FFB7C5 0%, #FF69B4 60%, transparent 100%)",
+          }}
+          animate={{
+            opacity: [0, 0.8, 0],
+            scale: [0.5, 1.3, 0.5],
+          }}
+          transition={{
+            duration: s.duration,
+            delay: s.delay,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function PaperCutDivider() {
   return (
     <div className="flex items-center justify-center gap-0 w-full py-2">
@@ -91,12 +135,15 @@ function PaperCutDivider() {
 export default function CrimsonBloom({
   greeting,
   isPreview = false,
+  isEditing = false,
+  onFieldChange,
+  onLogoClick,
 }: TemplateProps) {
   const { isPlaying, openUpgradeModal } = useGreetingPage();
   const isTrial = greeting.isTrial === true;
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden text-center flex flex-col items-center justify-center font-sans">
+    <div className={`relative w-full overflow-hidden text-center flex flex-col items-center justify-center font-sans ${isEditing ? "min-h-full" : "min-h-screen"}`}>
       {/* Animated deep red gradient background */}
       <div className="absolute inset-0 -z-30">
         <motion.div
@@ -128,11 +175,60 @@ export default function CrimsonBloom({
         }}
       />
 
+      {/* Radial glow pulses */}
+      <motion.div
+        className="absolute inset-0 -z-20"
+        animate={isPlaying ? { opacity: [0.2, 0.45, 0.2] } : {}}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          background:
+            "radial-gradient(ellipse at 25% 25%, rgba(220,20,60,0.15) 0%, transparent 50%), " +
+            "radial-gradient(ellipse at 75% 75%, rgba(255,183,197,0.08) 0%, transparent 50%)",
+        }}
+      />
+
+      {/* Corner glow spots */}
+      {[
+        { x: "10%", y: "15%", color: "rgba(220,20,60,0.1)", s: 150 },
+        { x: "90%", y: "10%", color: "rgba(255,105,180,0.08)", s: 130 },
+        { x: "85%", y: "85%", color: "rgba(220,20,60,0.08)", s: 160 },
+        { x: "12%", y: "88%", color: "rgba(255,183,197,0.1)", s: 140 },
+      ].map((spot, i) => (
+        <div
+          key={i}
+          className="absolute -z-15 pointer-events-none"
+          style={{
+            left: spot.x,
+            top: spot.y,
+            width: spot.s,
+            height: spot.s,
+            background: `radial-gradient(circle, ${spot.color} 0%, transparent 70%)`,
+            borderRadius: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
+      ))}
+
       {/* Cherry blossom petals */}
       {isPlaying && <CherryBlossomOverlay />}
 
+      {/* Sparkle dots */}
+      {isPlaying && <CrimsonSparkles />}
+
+      {/* Top ornamental swoosh */}
+      <motion.div
+        className="absolute top-0 left-0 right-0 z-5 pointer-events-none overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <svg viewBox="0 0 400 30" preserveAspectRatio="none" className="w-full h-6 opacity-15">
+          <path d="M0,30 Q100,0 200,15 Q300,30 400,5 L400,0 L0,0 Z" fill="#DC143C" />
+        </svg>
+      </motion.div>
+
       {/* Trial banner */}
-      {isTrial && !isPreview && (
+      {isTrial && !isPreview && !isEditing && (
         <motion.div
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -182,24 +278,7 @@ export default function CrimsonBloom({
         />
 
         <div className="relative p-8 space-y-6">
-          {greeting.companyLogoUrl && !isTrial && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3, type: "spring" }}
-            >
-              <Image
-                src={greeting.companyLogoUrl!}
-                alt="Company Logo"
-                width={64}
-                height={64}
-                className="w-16 h-16 mx-auto object-contain rounded-lg"
-                unoptimized
-              />
-            </motion.div>
-          )}
-
-          {isTrial && (
+          {isTrial ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -208,19 +287,72 @@ export default function CrimsonBloom({
             >
               Powered by E-Card Greeting
             </motion.div>
-          )}
+          ) : isEditing ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, type: "spring" }}
+              onClick={onLogoClick}
+              className="cursor-pointer group"
+            >
+              {greeting.companyLogoUrl ? (
+                <div className="relative w-16 h-16 mx-auto">
+                  <Image
+                    src={greeting.companyLogoUrl}
+                    alt="Company Logo"
+                    width={64}
+                    height={64}
+                    className="w-16 h-16 object-contain rounded-lg"
+                    unoptimized
+                  />
+                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-[10px] font-medium">Change</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-16 h-16 mx-auto border-2 border-dashed border-red-400/40 rounded-lg flex flex-col items-center justify-center hover:border-red-400/70 transition-colors">
+                  <span className="text-red-400/60 text-lg leading-none">+</span>
+                  <span className="text-red-400/50 text-[9px] mt-0.5">Logo</span>
+                </div>
+              )}
+            </motion.div>
+          ) : greeting.companyLogoUrl ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, type: "spring" }}
+            >
+              <Image
+                src={greeting.companyLogoUrl}
+                alt="Company Logo"
+                width={64}
+                height={64}
+                className="w-16 h-16 mx-auto object-contain rounded-lg"
+                unoptimized
+              />
+            </motion.div>
+          ) : null}
 
           <PaperCutDivider />
 
           <motion.h1
-            className="text-4xl md:text-5xl font-bold bg-linear-to-r from-red-700 via-rose-600 to-red-800 bg-clip-text text-transparent drop-shadow-sm"
+            className={`text-4xl md:text-5xl font-bold drop-shadow-sm ${isEditing ? "text-red-300" : "bg-linear-to-r from-red-700 via-rose-600 to-red-800 bg-clip-text text-transparent"}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            {isPreview
-              ? greeting.title || "[Your Greeting Title]"
-              : greeting.title}
+            {isEditing ? (
+              <InlineEditable
+                value={greeting.title}
+                onChange={(v) => onFieldChange?.("title", v)}
+                placeholder="Add your greeting title"
+                className="text-4xl md:text-5xl font-bold bg-linear-to-r from-red-700 via-rose-600 to-red-800 bg-clip-text text-transparent"
+              />
+            ) : isPreview ? (
+              greeting.title || "Add your greeting title"
+            ) : (
+              greeting.title
+            )}
           </motion.h1>
 
           <motion.p
@@ -229,11 +361,21 @@ export default function CrimsonBloom({
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.5 }}
           >
-            {isPreview
-              ? greeting.messageDefault ||
-                "[Your greeting message will appear here. Write something warm and heartfelt!]"
-              : greeting.messageDefault ||
-                "Wishing you abundance and prosperity in the coming year!"}
+            {isEditing ? (
+              <InlineEditable
+                value={greeting.messageDefault}
+                onChange={(v) => onFieldChange?.("messageDefault", v)}
+                placeholder="Write your greeting message here..."
+                className="text-lg md:text-xl leading-relaxed text-gray-700"
+                multiline
+              />
+            ) : isPreview ? (
+              greeting.messageDefault ||
+              "Write your greeting message here..."
+            ) : (
+              greeting.messageDefault ||
+              "Wishing you abundance and prosperity in the coming year!"
+            )}
           </motion.p>
 
           <PaperCutDivider />
@@ -246,17 +388,38 @@ export default function CrimsonBloom({
           >
             <span className="text-red-700/60 text-sm">With Love,</span>
             <br />
-            <span className="text-2xl bg-linear-to-r from-red-700 to-red-900 bg-clip-text text-transparent">
-              {isPreview
-                ? greeting.senderNameDefault || "[Company Name]"
-                : greeting.senderNameDefault || "Our Family"}
+            <span className={`text-2xl ${isEditing ? "text-red-300" : "bg-linear-to-r from-red-700 to-red-900 bg-clip-text text-transparent"}`}>
+              {isEditing ? (
+                <InlineEditable
+                  value={greeting.senderNameDefault}
+                  onChange={(v) => onFieldChange?.("senderNameDefault", v)}
+                  placeholder="Your company name"
+                  className="text-2xl bg-linear-to-r from-red-700 to-red-900 bg-clip-text text-transparent"
+                />
+              ) : isPreview ? (
+                greeting.senderNameDefault || "Your company name"
+              ) : (
+                greeting.senderNameDefault || "Our Family"
+              )}
             </span>
           </motion.div>
         </div>
       </motion.div>
 
+      {/* Bottom ornamental swoosh */}
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 z-5 pointer-events-none overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+      >
+        <svg viewBox="0 0 400 30" preserveAspectRatio="none" className="w-full h-6 opacity-12 rotate-180">
+          <path d="M0,30 Q100,0 200,15 Q300,30 400,5 L400,0 L0,0 Z" fill="#DC143C" />
+        </svg>
+      </motion.div>
+
       {/* Trial watermark badge at bottom */}
-      {isTrial && !isPreview && (
+      {isTrial && !isPreview && !isEditing && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

@@ -1,34 +1,78 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, CheckCircle, CreditCard, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import * as anim from "@/lib/animations";
 import Shimmer from "@/components/Shimmer";
 import toast from "react-hot-toast";
+import { GreetingStatus, PaymentStatus, PaymentType } from "@/lib/constants";
 
 interface Payment {
   id: string;
   amount: number;
   status: string;
-  checkoutUrl: string;
+  type: string;
 }
 
 interface Greeting {
   id: string;
   title: string;
-  template: { name: string; price: number };
-  payment?: Payment;
+  isTrial: boolean;
+  template: {
+    name: string;
+    price: number;
+    premiumPrice?: number | null;
+    extensionMonths: number;
+    extensionPrice: number;
+  };
+  payments: Payment[];
   status: string;
 }
 
 export default function PayPage() {
+  return (
+    <Suspense fallback={<PayPageSkeleton />}>
+      <PayPageContent />
+    </Suspense>
+  );
+}
+
+function PayPageSkeleton() {
+  return (
+    <div className="max-w-xl mx-auto space-y-6">
+      <div className="space-y-2">
+        <Shimmer className="h-4 w-32" />
+        <Shimmer className="h-8 w-52" />
+        <Shimmer className="h-4 w-64" />
+      </div>
+      <div className="glass-card p-6 rounded-xl space-y-4">
+        <div className="flex justify-between items-center">
+          <Shimmer className="h-4 w-20" />
+          <Shimmer className="h-4 w-32" />
+        </div>
+        <div className="flex justify-between items-center">
+          <Shimmer className="h-4 w-12" />
+          <Shimmer className="h-6 w-28" />
+        </div>
+        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <Shimmer className="h-12 w-full rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PayPageContent() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
+  const isUpgrade = searchParams.get("upgrade") === "true";
+  const isExtend = searchParams.get("extend") === "true";
   const { data: greeting, isLoading: loading, mutate } = useSWR<Greeting>(
     `/api/greetings/${params.id}`,
     fetcher,
@@ -38,14 +82,31 @@ export default function PayPage() {
   const handlePay = async () => {
     setProcessing(true);
     try {
-      const res = await fetch(`/api/greetings/${params.id}/pay`, {
+      const payUrl = isExtend
+        ? `/api/greetings/${params.id}/pay?extend=true`
+        : `/api/greetings/${params.id}/pay`;
+
+      // TODO: When integrating Xendit, the API will return a checkoutUrl
+      // and we should redirect the user: window.location.href = data.checkoutUrl
+      const res = await fetch(payUrl, {
         method: "POST",
       });
       const data = await res.json();
 
-      if (data.checkoutUrl) {
-        await fetch(`/api/payments/webhook?paymentId=${data.payment.id}`);
-        toast.success("Payment successful!");
+      if (!res.ok) {
+        toast.error(data.error || "Payment failed. Please try again.");
+        setProcessing(false);
+        return;
+      }
+
+      if (data.success) {
+        if (isExtend) {
+          toast.success(`Extended by ${data.extensionMonths} months!`);
+        } else if (isUpgrade) {
+          toast.success("Upgrade successful!");
+        } else {
+          toast.success("Payment successful!");
+        }
         mutate();
       }
     } catch (error) {
@@ -55,33 +116,69 @@ export default function PayPage() {
     }
   };
 
-  if (loading)
-    return (
-      <div className="max-w-xl mx-auto space-y-6">
-        <div className="space-y-2">
-          <Shimmer className="h-4 w-32" />
-          <Shimmer className="h-8 w-52" />
-          <Shimmer className="h-4 w-64" />
-        </div>
-        <div className="glass-card p-6 rounded-xl space-y-4">
-          <div className="flex justify-between items-center">
-            <Shimmer className="h-4 w-20" />
-            <Shimmer className="h-4 w-32" />
-          </div>
-          <div className="flex justify-between items-center">
-            <Shimmer className="h-4 w-12" />
-            <Shimmer className="h-6 w-28" />
-          </div>
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <Shimmer className="h-12 w-full rounded-xl" />
-          </div>
-        </div>
-      </div>
-    );
+  if (loading) return <PayPageSkeleton />;
   if (!greeting) return <div>Greeting not found</div>;
 
-  const isPaid =
-    greeting.status === "published" || greeting.payment?.status === "paid";
+  const purchasePayment = greeting.payments.find(
+    (p) =>
+      (p.type === PaymentType.PURCHASE || p.type === PaymentType.UPGRADE) &&
+      p.status === PaymentStatus.PAID,
+  );
+
+  // Determine if this payment mode is already done
+  let isPaid = false;
+  if (isExtend) {
+    // Extension just completed — check if the mutate refreshed data
+    // We rely on the success toast + redirect instead
+    isPaid = false;
+  } else if (isUpgrade) {
+    isPaid = greeting.status === GreetingStatus.PUBLISHED && !greeting.isTrial;
+  } else {
+    isPaid = greeting.status === GreetingStatus.PUBLISHED && !!purchasePayment;
+  }
+
+  // Price depends on mode
+  let price: number;
+  let heading: string;
+  let subtitle: string;
+  let successMessage: string;
+  let successDetail: string;
+  let buttonLabel: string;
+  let backHref: string;
+  let backLabel: string;
+  let returnLabel: string;
+
+  if (isExtend) {
+    price = greeting.template.extensionPrice;
+    heading = "Extend Greeting";
+    subtitle = `Pay to extend your greeting by ${greeting.template.extensionMonths} months.`;
+    successMessage = "Extension Successful!";
+    successDetail = `Your greeting has been extended by ${greeting.template.extensionMonths} months.`;
+    buttonLabel = `Extend ${greeting.template.extensionMonths} Months`;
+    backHref = `/app/greetings/${params.id}/edit`;
+    backLabel = "Back to editor";
+    returnLabel = "Back to Editor";
+  } else if (isUpgrade) {
+    price = greeting.template.premiumPrice ?? greeting.template.price;
+    heading = "Upgrade Greeting";
+    subtitle = "Pay to upgrade your trial greeting to full access.";
+    successMessage = "Upgrade Successful!";
+    successDetail = "Your greeting is now fully unlocked.";
+    buttonLabel = "Upgrade Now";
+    backHref = `/app/greetings/${params.id}/edit`;
+    backLabel = "Back to editor";
+    returnLabel = "Back to Editor";
+  } else {
+    price = greeting.template.price;
+    heading = "Complete Payment";
+    subtitle = "Pay to publish your greeting card.";
+    successMessage = "Payment Successful!";
+    successDetail = "Your greeting is now live and shareable.";
+    buttonLabel = "Pay Now";
+    backHref = "/app/greetings";
+    backLabel = "Back to greetings";
+    returnLabel = "Return to Greetings";
+  }
 
   return (
     <motion.div
@@ -92,13 +189,13 @@ export default function PayPage() {
     >
       <motion.div variants={anim.fadeInDown}>
         <Link
-          href="/app/greetings"
+          href={backHref}
           className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
         >
-          <ArrowLeft size={14} /> Back to greetings
+          <ArrowLeft size={14} /> {backLabel}
         </Link>
-        <h1 className="text-3xl font-bold">Complete Payment</h1>
-        <p className="text-gray-500 mt-1">Pay to publish your greeting card.</p>
+        <h1 className="text-3xl font-bold">{heading}</h1>
+        <p className="text-gray-500 mt-1">{subtitle}</p>
       </motion.div>
 
       <motion.div
@@ -109,13 +206,19 @@ export default function PayPage() {
           <span className="text-gray-500">Template</span>
           <span className="font-medium">{greeting.template.name}</span>
         </div>
+        {isExtend && (
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500">Duration</span>
+            <span className="font-medium">{greeting.template.extensionMonths} months</span>
+          </div>
+        )}
         <div className="flex justify-between items-center">
           <span className="text-gray-500">Price</span>
           <span className="font-bold text-lg">
             {new Intl.NumberFormat("id-ID", {
               style: "currency",
               currency: "IDR",
-            }).format(greeting.template.price)}
+            }).format(price)}
           </span>
         </div>
 
@@ -141,17 +244,15 @@ export default function PayPage() {
                 >
                   <CheckCircle size={56} />
                 </motion.div>
-                <span className="text-xl font-bold">Payment Successful!</span>
-                <p className="text-sm text-gray-500">
-                  Your greeting is now live and shareable.
-                </p>
+                <span className="text-xl font-bold">{successMessage}</span>
+                <p className="text-sm text-gray-500">{successDetail}</p>
                 <motion.button
-                  onClick={() => router.push("/app/greetings")}
+                  onClick={() => router.push(backHref)}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   className="bg-gray-900 text-white px-6 py-2.5 rounded-full mt-2 font-medium"
                 >
-                  Return to Greetings
+                  {returnLabel}
                 </motion.button>
               </motion.div>
             ) : (
@@ -167,7 +268,7 @@ export default function PayPage() {
                     <Loader2 className="animate-spin" size={20} />
                   ) : (
                     <>
-                      <CreditCard size={18} /> Pay Now
+                      <CreditCard size={18} /> {buttonLabel}
                     </>
                   )}
                 </motion.button>
@@ -176,7 +277,8 @@ export default function PayPage() {
           </AnimatePresence>
         </div>
         <p className="text-xs text-center text-gray-400 mt-4">
-          * This is a mock payment for MVP. Clicking &quot;Pay Now&quot; will
+          {/* TODO: Remove this notice when real payment is integrated */}
+          * This is a mock payment for MVP. Clicking &quot;{buttonLabel}&quot; will
           automatically mark it as paid.
         </p>
       </motion.div>

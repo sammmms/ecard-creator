@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 import {
   motion,
-  AnimatePresence,
   useMotionValue,
   useTransform,
   animate,
@@ -19,19 +18,52 @@ import {
   Plus,
   ArrowRight,
   TrendingUp,
-  X,
+  Heart,
 } from "lucide-react";
 import Link from "next/link";
 import * as anim from "@/lib/animations";
 import StatusBadge from "@/components/StatusBadge";
-import WishesModal from "@/components/WishesModal";
-import Button from "@/components/Button";
+import { GreetingStatus } from "@/lib/constants";
 
 interface Stats {
   activeGreetings: number;
   totalViews: number;
   totalWishes: number;
   totalDonations: number;
+}
+
+interface RecentWish {
+  id: string;
+  name: string | null;
+  comment: string | null;
+  createdAt: string;
+  greeting: { id: string; title: string | null; slug: string };
+  donation: { id: string; amount: number; status: string } | null;
+}
+
+const AVATAR_GRADIENTS = [
+  "from-rose-400 to-pink-500",
+  "from-amber-400 to-orange-500",
+  "from-emerald-400 to-teal-500",
+  "from-blue-400 to-indigo-500",
+  "from-purple-400 to-violet-500",
+  "from-red-400 to-rose-500",
+];
+
+function hashCode(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash);
+}
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(amount);
 }
 
 function AnimatedCounter({
@@ -63,34 +95,27 @@ export default function DashboardPage() {
       slug: string;
       status: string;
       createdAt: string;
+      viewCount?: number;
       _count?: {
-        events?: number;
         publicSubmissions?: number;
         donationPayments?: number;
       };
     }[]
   >("/api/greetings", fetcher);
+
+  const { data: wishesData } = useSWR<{ wishes: RecentWish[]; total: number }>(
+    "/api/wishes?limit=5",
+    fetcher,
+  );
+  const recentWishes = wishesData?.wishes || [];
+
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 5;
-  const [showAllWishes, setShowAllWishes] = useState(false);
-  const [wishesModal, setWishesModal] = useState({
-    isOpen: false,
-    greetingId: "",
-    greetingTitle: "",
-  });
 
-  const openWishesModal = (id: string, title: string) => {
-    setWishesModal({ isOpen: true, greetingId: id, greetingTitle: title });
-  };
-
-  const greetingsWithWishes = greetings.filter(
-    (g) => (g._count?.publicSubmissions || 0) > 0,
-  );
-
-  const published = greetings.filter((g) => g.status === "published");
+  const published = greetings.filter((g) => g.status === GreetingStatus.PUBLISHED);
   const stats: Stats = {
     activeGreetings: published.length,
-    totalViews: greetings.reduce((acc, g) => acc + (g._count?.events || 0), 0),
+    totalViews: greetings.reduce((acc, g) => acc + (g.viewCount || 0), 0),
     totalWishes: greetings.reduce(
       (acc, g) => acc + (g._count?.publicSubmissions || 0),
       0,
@@ -108,6 +133,7 @@ export default function DashboardPage() {
     icon: typeof Layers;
     color: string;
     bg: string;
+    href?: string;
     prefix?: string;
   }> = [
     {
@@ -130,6 +156,7 @@ export default function DashboardPage() {
       icon: MessageCircle,
       color: "text-purple-600 dark:text-purple-400",
       bg: "bg-purple-50 dark:bg-purple-900/20",
+      href: "/app/wishes",
     },
     {
       label: "Donations Received",
@@ -137,6 +164,7 @@ export default function DashboardPage() {
       icon: Gift,
       color: "text-amber-600 dark:text-amber-400",
       bg: "bg-amber-50 dark:bg-amber-900/20",
+      href: "/app/wishes?tab=donations",
     },
   ];
 
@@ -161,15 +189,13 @@ export default function DashboardPage() {
       >
         {statCards.map((card) => {
           const Icon = card.icon;
-          const isClickable =
-            card.label === "Total Wishes" && stats.totalWishes > 0;
-          return (
+          const isClickable = !!card.href;
+          const inner = (
             <motion.div
               key={card.label}
               variants={anim.staggerItem}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
               className={`glass-card p-4 sm:p-6 rounded-xl group ${isClickable ? "cursor-pointer" : "cursor-default"}`}
-              onClick={isClickable ? () => setShowAllWishes(true) : undefined}
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -198,6 +224,13 @@ export default function DashboardPage() {
                 {isClickable ? "Tap to view all" : "Updated just now"}
               </div>
             </motion.div>
+          );
+          return isClickable ? (
+            <Link key={card.label} href={card.href!}>
+              {inner}
+            </Link>
+          ) : (
+            <div key={card.label}>{inner}</div>
           );
         })}
       </motion.div>
@@ -274,6 +307,79 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
+      {/* Recent Wishes */}
+      <motion.div variants={anim.fadeInUp}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Recent Wishes</h2>
+          <Link
+            href="/app/wishes"
+            className="text-sm link-theme flex items-center gap-1"
+          >
+            View all <ArrowRight size={14} />
+          </Link>
+        </div>
+        {recentWishes.length === 0 ? (
+          <div className="glass-card rounded-xl p-8 flex flex-col items-center text-center">
+            <Heart
+              size={32}
+              className="text-gray-300 dark:text-gray-600 mb-2"
+            />
+            <p className="text-sm text-gray-500">No wishes yet</p>
+            <p className="text-xs text-gray-400 mt-1">
+              Wishes will appear here when people send them to your greetings.
+            </p>
+          </div>
+        ) : (
+          <div className="glass-card rounded-xl divide-y divide-gray-200 dark:divide-gray-700 overflow-hidden">
+            {recentWishes.map((wish, i) => {
+              const name = wish.name || "Anonymous";
+              const initial = name.charAt(0).toUpperCase();
+              const gradientIdx =
+                hashCode(wish.id) % AVATAR_GRADIENTS.length;
+              return (
+                <motion.div
+                  key={wish.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className="flex items-start gap-3 px-5 py-3.5"
+                >
+                  <div
+                    className={`w-9 h-9 rounded-full bg-gradient-to-br ${AVATAR_GRADIENTS[gradientIdx]} flex items-center justify-center shrink-0 mt-0.5`}
+                  >
+                    <span className="text-white text-sm font-bold">
+                      {initial}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm truncate">{name}</p>
+                      {wish.donation && wish.donation.amount > 0 && (
+                        <span className="text-[10px] bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium shrink-0">
+                          {formatCurrency(wish.donation.amount)}
+                        </span>
+                      )}
+                    </div>
+                    {wish.comment && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
+                        {wish.comment}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-400 mt-1">
+                      {wish.greeting.title || "Untitled"} &middot;{" "}
+                      {new Date(wish.createdAt).toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "short",
+                      })}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </motion.div>
+
       {/* Recent Greetings */}
       {recentGreetings.length > 0 && (
         <motion.div
@@ -346,115 +452,6 @@ export default function DashboardPage() {
           )}
         </motion.div>
       )}
-
-      {/* All Wishes Modal — lists greetings with wish counts */}
-      <AnimatePresence>
-        {showAllWishes && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-            onClick={() => setShowAllWishes(false)}
-          >
-            <motion.div
-              variants={anim.springModal}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="relative w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-900 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-800 shrink-0">
-                <div className="flex items-center gap-2">
-                  <MessageCircle size={18} className="text-theme-primary" />
-                  <h3 className="font-semibold text-base">
-                    All Wishes ({stats.totalWishes})
-                  </h3>
-                </div>
-                <Button
-                  variant="icon"
-                  size="sm"
-                  onClick={() => setShowAllWishes(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <X size={18} />
-                </Button>
-              </div>
-
-              {/* Greeting list */}
-              <div className="overflow-y-auto flex-1">
-                {greetingsWithWishes.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                    <MessageCircle
-                      size={36}
-                      className="text-gray-300 dark:text-gray-600 mb-3"
-                    />
-                    <p className="text-gray-500 dark:text-gray-400 font-medium">
-                      No wishes yet
-                    </p>
-                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                      Wishes will appear when people send them to your
-                      greetings.
-                    </p>
-                  </div>
-                ) : (
-                  <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={anim.staggerContainer}
-                  >
-                    {greetingsWithWishes.map((g) => (
-                      <motion.button
-                        key={g.id}
-                        variants={anim.staggerItem}
-                        onClick={() => {
-                          setShowAllWishes(false);
-                          openWishesModal(g.id, g.title || "Untitled");
-                        }}
-                        className="w-full flex items-center gap-3 px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-left"
-                      >
-                        <div className="w-9 h-9 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center shrink-0">
-                          <MessageCircle
-                            size={16}
-                            className="text-purple-600 dark:text-purple-400"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">
-                            {g.title || "Untitled Greeting"}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {g._count?.publicSubmissions || 0} wish
-                            {(g._count?.publicSubmissions || 0) !== 1
-                              ? "es"
-                              : ""}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <StatusBadge status={g.status} />
-                          <ArrowRight size={14} className="text-gray-400" />
-                        </div>
-                      </motion.button>
-                    ))}
-                  </motion.div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Single Greeting Wishes Modal */}
-      <WishesModal
-        isOpen={wishesModal.isOpen}
-        onClose={() =>
-          setWishesModal({ isOpen: false, greetingId: "", greetingTitle: "" })
-        }
-        greetingId={wishesModal.greetingId}
-        greetingTitle={wishesModal.greetingTitle}
-      />
     </motion.div>
   );
 }

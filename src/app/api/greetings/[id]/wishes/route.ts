@@ -20,6 +20,7 @@ export async function GET(
     include: {
       publicSubmissions: {
         orderBy: { createdAt: "desc" },
+        include: { donationPayment: true },
       },
       donationPayments: true,
     },
@@ -29,16 +30,26 @@ export async function GET(
     return new NextResponse("Greeting not found", { status: 404 });
   }
 
-  const wishes = greeting.publicSubmissions.map((sub) => {
-    const matchingDonation = greeting.donationPayments.find(
-      (d) => d.donorName === sub.name && d.donorMessage === sub.comment,
-    );
+  type Submission = (typeof greeting.publicSubmissions)[number];
+  type Donation = (typeof greeting.donationPayments)[number];
+
+  const wishes = greeting.publicSubmissions.map((sub: Submission) => {
+    // Use relation first, fallback to name-matching for legacy data
+    const donation =
+      sub.donationPayment ||
+      greeting.donationPayments.find(
+        (d: Donation) =>
+          d.donorName === sub.name && d.donorMessage === sub.comment,
+      );
     return {
       id: sub.id,
       name: sub.name,
       comment: sub.comment,
+      imageUrl: sub.imageUrl || null,
       createdAt: sub.createdAt.toISOString(),
-      donationAmount: matchingDonation?.amount || null,
+      donationAmount: donation?.amount || null,
+      donationStatus: donation?.status || null,
+      donationId: donation?.id || null,
     };
   });
 

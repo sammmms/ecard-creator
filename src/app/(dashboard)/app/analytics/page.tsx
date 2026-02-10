@@ -1,7 +1,9 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import db from "@/lib/db";
+import { GreetingStatus, DonationStatus } from "@/lib/constants";
 import PerGreetingStats from "./PerGreetingStats";
 import RecentActivity from "./RecentActivity";
 
@@ -17,7 +19,6 @@ export default async function AnalyticsPage() {
     publishedCount,
     draftCount,
     trialCount,
-    totalViews,
     totalShares,
     totalWishes,
     donationAggregate,
@@ -28,21 +29,13 @@ export default async function AnalyticsPage() {
     db.greeting.count({ where: { userId } }),
 
     // Published count
-    db.greeting.count({ where: { userId, status: "published" } }),
+    db.greeting.count({ where: { userId, status: GreetingStatus.PUBLISHED } }),
 
     // Draft count
-    db.greeting.count({ where: { userId, status: "draft" } }),
+    db.greeting.count({ where: { userId, status: GreetingStatus.DRAFT } }),
 
     // Trial count
     db.greeting.count({ where: { userId, isTrial: true } }),
-
-    // Total page views
-    db.event.count({
-      where: {
-        type: "view",
-        greeting: { userId },
-      },
-    }),
 
     // Total shares (any event type containing "share")
     db.event.count({
@@ -63,7 +56,7 @@ export default async function AnalyticsPage() {
     db.donationPayment.aggregate({
       _sum: { amount: true },
       where: {
-        status: "paid",
+        status: DonationStatus.PAID,
         greeting: { userId },
       },
     }),
@@ -82,7 +75,7 @@ export default async function AnalyticsPage() {
       },
     }),
 
-    // Per-greeting stats
+    // Per-greeting stats (viewCount = IP-deduplicated unique visitors)
     db.greeting.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -92,9 +85,10 @@ export default async function AnalyticsPage() {
         slug: true,
         status: true,
         isTrial: true,
+        viewCount: true,
+        maxFreeViews: true,
         _count: {
           select: {
-            events: true,
             publicSubmissions: true,
           },
         },
@@ -104,30 +98,21 @@ export default async function AnalyticsPage() {
 
   const totalDonations = donationAggregate._sum.amount || 0;
 
-  // Build per-greeting view/share counts
-  // We need individual counts per greeting, so let's get them
+  // Total views = sum of IP-deduplicated viewCount across all greetings
+  const totalViews = greetingsWithStats.reduce((sum, g) => sum + g.viewCount, 0);
+
+  // Build per-greeting share counts
   const greetingIds = greetingsWithStats.map((g) => g.id);
 
-  const [viewCounts, shareCounts] = await Promise.all([
-    db.event.groupBy({
-      by: ["greetingId"],
-      where: {
-        greetingId: { in: greetingIds },
-        type: "view",
-      },
-      _count: true,
-    }),
-    db.event.groupBy({
-      by: ["greetingId"],
-      where: {
-        greetingId: { in: greetingIds },
-        type: { contains: "share" },
-      },
-      _count: true,
-    }),
-  ]);
+  const shareCounts = await db.event.groupBy({
+    by: ["greetingId"],
+    where: {
+      greetingId: { in: greetingIds },
+      type: { contains: "share" },
+    },
+    _count: true,
+  });
 
-  const viewMap = new Map(viewCounts.map((v) => [v.greetingId, v._count]));
   const shareMap = new Map(shareCounts.map((s) => [s.greetingId, s._count]));
 
   const perGreetingStats = greetingsWithStats.map((g) => ({
@@ -136,9 +121,10 @@ export default async function AnalyticsPage() {
     slug: g.slug,
     status: g.status,
     isTrial: g.isTrial,
-    views: viewMap.get(g.id) || 0,
+    views: g.viewCount,
     shares: shareMap.get(g.id) || 0,
     wishes: g._count.publicSubmissions,
+    maxFreeViews: g.maxFreeViews,
   }));
 
   // Format currency
@@ -192,7 +178,10 @@ export default async function AnalyticsPage() {
             </span>
           </p>
         </div>
-        <div className="glass-card rounded-xl p-6">
+        <Link
+          href="/app/wishes?tab=donations"
+          className="glass-card rounded-xl p-6 block hover:ring-2 hover:ring-theme-primary/30 transition-all group"
+        >
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
             Total Donations
           </p>
@@ -201,7 +190,10 @@ export default async function AnalyticsPage() {
               {formatCurrency(totalDonations)}
             </span>
           </p>
-        </div>
+          <p className="text-xs text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            Click to manage
+          </p>
+        </Link>
       </div>
 
       {/* Greeting Counts by Status */}

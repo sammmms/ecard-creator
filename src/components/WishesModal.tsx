@@ -1,16 +1,20 @@
 "use client";
 
+import { useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, MessageCircle, Loader2, Heart } from "lucide-react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import Button from "@/components/Button";
 import * as anim from "@/lib/animations";
+import Image from "next/image";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 
 interface WishData {
   id: string;
   name: string | null;
   comment: string | null;
+  imageUrl?: string | null;
   createdAt: string;
   donationAmount: number | null;
 }
@@ -57,6 +61,9 @@ export default function WishesModal({
     isOpen && greetingId ? `/api/greetings/${greetingId}/wishes` : null,
     fetcher,
   );
+
+  const handleEscape = useCallback(() => onClose(), [onClose]);
+  useEscapeKey(handleEscape, isOpen);
 
   return (
     <AnimatePresence>
@@ -159,6 +166,18 @@ export default function WishesModal({
                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                               {wish.comment}
                             </p>
+                          )}
+                          {wish.imageUrl && (
+                            <div className="mt-2">
+                              <Image
+                                src={wish.imageUrl}
+                                alt="Wish photo"
+                                width={128}
+                                height={96}
+                                className="w-32 h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                                unoptimized
+                              />
+                            </div>
                           )}
                           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                             {new Date(wish.createdAt).toLocaleDateString("en-US", {

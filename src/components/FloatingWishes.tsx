@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
+import Image from "next/image";
 
 interface Wish {
   id: string;
   name: string | null;
   comment: string | null;
+  imageUrl?: string | null;
   createdAt: string;
   donationAmount: number | null;
 }
@@ -39,7 +41,9 @@ const AVATAR_GRADIENTS = [
 
 export default function FloatingWishes({ wishes }: { wishes: Wish[] }) {
   const [prefersReduced, setPrefersReduced] = useState(
-    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
 
   useEffect(() => {
@@ -62,18 +66,43 @@ export default function FloatingWishes({ wishes }: { wishes: Wish[] }) {
           const gradient = AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length];
           const initial = wish.name?.[0]?.toUpperCase() || null;
           return (
-            <div key={wish.id} className="flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full pl-1.5 pr-4 py-1.5 shadow-lg shadow-black/[0.08] border border-white/70">
-              <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 shadow-sm`}>
+            <div
+              key={wish.id}
+              className="flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full pl-1.5 pr-4 py-1.5 shadow-lg shadow-black/8 border border-white/70"
+            >
+              <div
+                className={`w-7 h-7 rounded-full bg-linear-to-br ${gradient} flex items-center justify-center shrink-0 shadow-sm`}
+              >
                 {initial ? (
-                  <span className="text-[11px] font-bold text-white leading-none">{initial}</span>
+                  <span className="text-[11px] font-bold text-white leading-none">
+                    {initial}
+                  </span>
                 ) : (
                   <Heart size={12} className="text-white" fill="currentColor" />
                 )}
               </div>
               <div className="min-w-0 overflow-hidden">
-                {wish.name && <p className="text-[11px] font-semibold text-gray-800 truncate leading-tight">{wish.name}</p>}
-                {wish.comment && <p className="text-[11px] text-gray-500 truncate leading-tight">{wish.comment}</p>}
+                {wish.name && (
+                  <p className="text-[11px] font-semibold text-gray-800 truncate leading-tight">
+                    {wish.name}
+                  </p>
+                )}
+                {wish.comment && (
+                  <p className="text-[11px] text-gray-500 truncate leading-tight">
+                    {wish.comment}
+                  </p>
+                )}
               </div>
+              {wish.imageUrl && (
+                <Image
+                  src={wish.imageUrl}
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="w-7 h-7 rounded-md object-cover shrink-0"
+                  unoptimized
+                />
+              )}
             </div>
           );
         })}
@@ -127,21 +156,17 @@ export default function FloatingWishes({ wishes }: { wishes: Wish[] }) {
               },
             }}
           >
-            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full pl-1.5 pr-4 py-1.5 shadow-lg shadow-black/[0.08] border border-white/70 max-w-[320px]">
+            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full pl-1.5 pr-4 py-1.5 shadow-lg shadow-black/8 border border-white/70 max-w-[320px]">
               {/* Avatar */}
               <div
-                className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 shadow-sm`}
+                className={`w-7 h-7 rounded-full bg-linear-to-br ${gradient} flex items-center justify-center shrink-0 shadow-sm`}
               >
                 {initial ? (
                   <span className="text-[11px] font-bold text-white leading-none">
                     {initial}
                   </span>
                 ) : (
-                  <Heart
-                    size={12}
-                    className="text-white"
-                    fill="currentColor"
-                  />
+                  <Heart size={12} className="text-white" fill="currentColor" />
                 )}
               </div>
 
@@ -158,6 +183,18 @@ export default function FloatingWishes({ wishes }: { wishes: Wish[] }) {
                   </p>
                 )}
               </div>
+
+              {/* Image thumbnail */}
+              {wish.imageUrl && (
+                <Image
+                  src={wish.imageUrl}
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="w-7 h-7 rounded-md object-cover shrink-0"
+                  unoptimized
+                />
+              )}
             </div>
           </motion.div>
         );

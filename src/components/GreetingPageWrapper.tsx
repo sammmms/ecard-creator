@@ -32,6 +32,7 @@ interface WishData {
   id: string;
   name: string | null;
   comment: string | null;
+  imageUrl?: string | null;
   createdAt: string;
   donationAmount: number | null;
 }
