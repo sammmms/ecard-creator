@@ -50,8 +50,18 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.sub!;
+      if (token?.sub && session.user) {
+        // Verify user still exists in DB (handles DB reset / deleted user)
+        const dbUser = await db.user.findUnique({
+          where: { id: token.sub },
+          select: { id: true },
+        });
+        if (!dbUser) {
+          // User no longer exists — return empty session
+          session.user = undefined as any;
+          return session;
+        }
+        session.user.id = token.sub;
       }
       return session;
     },
