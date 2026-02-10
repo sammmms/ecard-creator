@@ -4,6 +4,7 @@ import type { TemplateProps } from "@/types/template";
 import GoldNShiny from "./GoldNShiny";
 import CrimsonBloom from "./CrimsonBloom";
 import JadeProsperity from "./JadeProsperity";
+import ValentineRose from "./ValentineRose";
 
 export default function TemplateRenderer({
   componentSlug,
@@ -16,6 +17,8 @@ export default function TemplateRenderer({
       return <CrimsonBloom {...props} />;
     case "jade-prosperity":
       return <JadeProsperity {...props} />;
+    case "valentine-rose":
+      return <ValentineRose {...props} />;
     default:
       return null;
   }

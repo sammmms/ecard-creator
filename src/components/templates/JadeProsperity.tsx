@@ -1,13 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Share2, Heart } from "lucide-react";
 import Image from "next/image";
 import type { TemplateProps } from "@/types/template";
-import FloatingWishes from "@/components/FloatingWishes";
-import SendWishModal from "@/components/SendWishModal";
-import ShareModal from "@/components/ShareModal";
+import { useGreetingPage } from "@/components/GreetingPageWrapper";
 
 // ---------- Floating jade decorative elements ----------
 const JADE_SHAPES = Array.from({ length: 12 }, (_, i) => {
@@ -60,19 +56,10 @@ function FloatingJadeElements() {
 // ---------- Main template ----------
 export default function JadeProsperity({
   greeting,
-  wishes: initialWishes,
-  paymentMethods,
-  donationMode,
   isPreview = false,
 }: TemplateProps) {
-  const [showDonation, setShowDonation] = useState(false);
-  const [showShare, setShowShare] = useState(false);
-  const [wishes, setWishes] = useState(initialWishes);
-
+  const { isPlaying, openUpgradeModal } = useGreetingPage();
   const isTrial = greeting.isTrial === true;
-  const effectiveDonationMode = donationMode || greeting.donationMode || "none";
-  const showSendWish =
-    (greeting.submissionsEnabled || greeting.donationEnabled) && !isTrial;
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden text-center flex flex-col items-center justify-center font-sans">
@@ -85,9 +72,11 @@ export default function JadeProsperity({
               "linear-gradient(135deg, #064e3b 0%, #059669 40%, #047857 70%, #064e3b 100%)",
             backgroundSize: "400% 400%",
           }}
-          animate={{
-            backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
-          }}
+          animate={
+            isPlaying
+              ? { backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }
+              : {}
+          }
           transition={{
             duration: 16,
             repeat: Infinity,
@@ -113,7 +102,7 @@ export default function JadeProsperity({
       {/* Radial emerald glow */}
       <motion.div
         className="absolute inset-0 -z-15"
-        animate={{ opacity: [0.2, 0.45, 0.2] }}
+        animate={isPlaying ? { opacity: [0.2, 0.45, 0.2] } : {}}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
         style={{
           background:
@@ -123,7 +112,7 @@ export default function JadeProsperity({
       />
 
       {/* Floating jade elements */}
-      <FloatingJadeElements />
+      {isPlaying && <FloatingJadeElements />}
 
       {/* ========== Trial banner ========== */}
       {isTrial && !isPreview && (
@@ -133,12 +122,12 @@ export default function JadeProsperity({
           className="fixed top-0 left-0 right-0 bg-amber-500/95 backdrop-blur-sm text-white text-center py-2.5 text-sm z-50 font-medium shadow-lg"
         >
           This is a trial greeting.{" "}
-          <a
-            href="/app/templates"
+          <button
+            onClick={openUpgradeModal}
             className="underline underline-offset-2 font-bold hover:text-amber-100 transition-colors"
           >
             Upgrade to unlock all features &rarr;
-          </a>
+          </button>
         </motion.div>
       )}
 
@@ -148,9 +137,6 @@ export default function JadeProsperity({
           Preview Mode &mdash; This is how your greeting will look
         </div>
       )}
-
-      {/* ========== Floating wishes ========== */}
-      {!isPreview && wishes.length > 0 && <FloatingWishes wishes={wishes} />}
 
       {/* ========== Main card ========== */}
       <motion.div
@@ -257,37 +243,6 @@ export default function JadeProsperity({
             </span>
           </motion.div>
 
-          {/* Action buttons */}
-          {!isPreview && (
-            <motion.div
-              className="flex justify-center gap-4 pt-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-            >
-              {/* Share button */}
-              <motion.button
-                onClick={() => setShowShare(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-white/90 hover:bg-white text-gray-800 px-5 py-2.5 rounded-full text-sm font-medium transition shadow-lg backdrop-blur-sm border border-white/50"
-              >
-                <Share2 size={16} /> Share
-              </motion.button>
-
-              {/* Send Wish button */}
-              {showSendWish && (
-                <motion.button
-                  onClick={() => setShowDonation(true)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white px-5 py-2.5 rounded-full text-sm font-medium transition shadow-lg shadow-emerald-600/25"
-                >
-                  <Heart size={16} /> Send Wish
-                </motion.button>
-              )}
-            </motion.div>
-          )}
         </div>
       </motion.div>
 
@@ -304,26 +259,6 @@ export default function JadeProsperity({
           </span>
         </motion.div>
       )}
-
-      {/* ========== Modals ========== */}
-      <SendWishModal
-        isOpen={showDonation}
-        onClose={() => setShowDonation(false)}
-        greetingId={greeting.id}
-        donationEnabled={greeting.donationEnabled}
-        donationMode={effectiveDonationMode}
-        paymentMethods={paymentMethods || null}
-        onWishSent={(wish) => setWishes((prev) => [wish, ...prev])}
-      />
-
-      <ShareModal
-        isOpen={showShare}
-        onClose={() => setShowShare(false)}
-        url={typeof window !== "undefined" ? window.location.href : ""}
-        title={greeting.title}
-        isTrial={greeting.isTrial === true}
-        greetingId={greeting.id}
-      />
     </div>
   );
 }

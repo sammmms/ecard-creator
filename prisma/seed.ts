@@ -4,23 +4,21 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Seeding database...");
-
   // Create demo user
-  const hashedPassword = await bcrypt.hash("password123", 10);
+  const hashedPassword = await bcrypt.hash("BAtester123", 10);
   const user = await prisma.user.upsert({
-    where: { email: "demo@company.com" },
+    where: { email: "test@bizapps.id" },
     update: {},
     create: {
-      email: "demo@company.com",
-      companyName: "Acme Corp",
+      email: "test@bizapps.id",
+      companyName: "BizApps Tester",
       passwordHash: hashedPassword,
     },
   });
-  console.log({ user });
 
-  // Create CNY Templates
+  // Create Templates
   const templates = [
+    // === CNY Templates ===
     {
       id: "template-cny-trial",
       name: "CNY Trial — Lantern Glow",
@@ -41,6 +39,10 @@ async function main() {
       }),
       event: "cny",
       isActive: true,
+      category: "cny",
+      description:
+        "A warm lantern-lit design — perfect for a quick CNY greeting.",
+      premiumPrice: 45000,
     },
     {
       id: "template-cny-01",
@@ -61,6 +63,9 @@ async function main() {
       }),
       event: "cny",
       isActive: true,
+      category: "cny",
+      description: "Timeless red & gold palette with lanterns and fireworks.",
+      premiumPrice: null,
     },
     {
       id: "template-cny-02",
@@ -80,6 +85,9 @@ async function main() {
       }),
       event: "cny",
       isActive: true,
+      category: "cny",
+      description: "Vibrant night-sky fireworks with a modern twist.",
+      premiumPrice: null,
     },
     {
       id: "template-cny-03",
@@ -99,6 +107,10 @@ async function main() {
       }),
       event: "cny",
       isActive: true,
+      category: "cny",
+      description:
+        "Elegant paper-cut style with blossoms and traditional knots.",
+      premiumPrice: null,
     },
     {
       id: "template-cny-gold",
@@ -110,6 +122,9 @@ async function main() {
       componentSlug: "gold-n-shiny",
       event: "cny",
       isActive: true,
+      category: "cny",
+      description: "Luxurious gold shimmer with animated sparkle effects.",
+      premiumPrice: null,
     },
     {
       id: "template-cny-crimson",
@@ -121,6 +136,9 @@ async function main() {
       componentSlug: "crimson-bloom",
       event: "cny",
       isActive: true,
+      category: "cny",
+      description: "Deep crimson tones with falling cherry blossom petals.",
+      premiumPrice: null,
     },
     {
       id: "template-cny-jade",
@@ -132,13 +150,52 @@ async function main() {
       componentSlug: "jade-prosperity",
       event: "cny",
       isActive: true,
+      category: "cny",
+      description: "Jade green elegance with golden prosperity accents.",
+      premiumPrice: null,
+    },
+
+    // === Valentine Templates ===
+    {
+      id: "template-val-trial",
+      name: "Valentine Trial — Rose Whisper",
+      price: 0,
+      isTrial: true,
+      previewImageUrl: null,
+      configJson: "{}",
+      componentSlug: "valentine-rose",
+      event: "valentine",
+      isActive: true,
+      category: "valentine",
+      description:
+        "A romantic rose-themed card to try for free. Upgrade to unlock full features.",
+      premiumPrice: 45000,
+    },
+    {
+      id: "template-val-01",
+      name: "Valentine Rose",
+      price: 65000,
+      isTrial: false,
+      previewImageUrl: null,
+      configJson: "{}",
+      componentSlug: "valentine-rose",
+      event: "valentine",
+      isActive: true,
+      category: "valentine",
+      description:
+        "Romantic roses with floating hearts and elegant color schemes.",
+      premiumPrice: null,
     },
   ];
 
   for (const t of templates) {
     await prisma.template.upsert({
       where: { id: t.id },
-      update: {},
+      update: {
+        category: t.category,
+        description: t.description,
+        premiumPrice: t.premiumPrice,
+      },
       create: t,
     });
   }

@@ -2,14 +2,10 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Share2, Heart } from "lucide-react";
 import Image from "next/image";
 import type { TemplateProps } from "@/types/template";
-import ShareModal from "@/components/ShareModal";
-import SendWishModal from "@/components/SendWishModal";
-import FloatingWishes from "@/components/FloatingWishes";
+import { useGreetingPage } from "@/components/GreetingPageWrapper";
 
-// Gold sparkle particles — random positions, fading in/out, floating upward
 function GoldSparkleOverlay() {
   const [sparkles] = useState(() =>
     Array.from({ length: 24 }, (_, i) => ({
@@ -51,7 +47,6 @@ function GoldSparkleOverlay() {
   );
 }
 
-// Gold particle shower — 25 small divs falling from random top positions
 function GoldParticleShower() {
   const GOLD_COLORS = ["#FFD700", "#DAA520", "#B8860B"];
 
@@ -59,7 +54,7 @@ function GoldParticleShower() {
     Array.from({ length: 25 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
-      size: Math.random() * 4 + 4, // w-1 (4px) to w-2 (8px)
+      size: Math.random() * 4 + 4,
       color: GOLD_COLORS[i % GOLD_COLORS.length],
       delay: Math.random() * 8,
       duration: Math.random() * 6 + 6,
@@ -109,26 +104,21 @@ function GoldParticleShower() {
   );
 }
 
-// Decorative gold L-shape corners for the card
 function DecorativeCorners() {
   const cornerStyle = "absolute w-6 h-6 pointer-events-none";
   const borderColor = "border-yellow-500/50";
 
   return (
     <>
-      {/* Top-left */}
       <div
         className={`${cornerStyle} top-3 left-3 border-t-2 border-l-2 ${borderColor} rounded-tl-sm`}
       />
-      {/* Top-right */}
       <div
         className={`${cornerStyle} top-3 right-3 border-t-2 border-r-2 ${borderColor} rounded-tr-sm`}
       />
-      {/* Bottom-left */}
       <div
         className={`${cornerStyle} bottom-3 left-3 border-b-2 border-l-2 ${borderColor} rounded-bl-sm`}
       />
-      {/* Bottom-right */}
       <div
         className={`${cornerStyle} bottom-3 right-3 border-b-2 border-r-2 ${borderColor} rounded-br-sm`}
       />
@@ -139,18 +129,9 @@ function DecorativeCorners() {
 export default function GoldNShiny({
   greeting,
   isPreview = false,
-  wishes: initialWishes = [],
-  paymentMethods = null,
-  donationMode,
 }: TemplateProps) {
-  const [showDonation, setShowDonation] = useState(false);
-  const [showShare, setShowShare] = useState(false);
-  const [wishes, setWishes] = useState(initialWishes);
-
+  const { isPlaying, openUpgradeModal } = useGreetingPage();
   const isTrial = greeting.isTrial === true;
-  const effectiveDonationMode = donationMode || greeting.donationMode || "none";
-  const showSendWish =
-    (greeting.submissionsEnabled || greeting.donationEnabled) && !isTrial;
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden text-center flex flex-col items-center justify-center font-sans">
@@ -163,9 +144,11 @@ export default function GoldNShiny({
               "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 40%, #0a0a0a 70%, #1a1a2e 100%)",
             backgroundSize: "400% 400%",
           }}
-          animate={{
-            backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
-          }}
+          animate={
+            isPlaying
+              ? { backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }
+              : {}
+          }
           transition={{
             duration: 16,
             repeat: Infinity,
@@ -177,7 +160,7 @@ export default function GoldNShiny({
       {/* Subtle gold radial glow pulses */}
       <motion.div
         className="absolute inset-0 -z-25"
-        animate={{ opacity: [0.2, 0.4, 0.2] }}
+        animate={isPlaying ? { opacity: [0.2, 0.4, 0.2] } : {}}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
         style={{
           background:
@@ -186,10 +169,10 @@ export default function GoldNShiny({
       />
 
       {/* Gold sparkle particles */}
-      <GoldSparkleOverlay />
+      {isPlaying && <GoldSparkleOverlay />}
 
       {/* Gold particle shower */}
-      <GoldParticleShower />
+      {isPlaying && <GoldParticleShower />}
 
       {/* Trial banner */}
       {isTrial && !isPreview && (
@@ -199,12 +182,12 @@ export default function GoldNShiny({
           className="fixed top-0 left-0 right-0 bg-amber-500/95 backdrop-blur-sm text-white text-center py-2.5 text-sm z-50 font-medium shadow-lg"
         >
           This is a trial greeting.{" "}
-          <a
-            href="/app/templates"
+          <button
+            onClick={openUpgradeModal}
             className="underline underline-offset-2 font-bold hover:text-amber-100 transition-colors"
           >
             Upgrade to unlock all features &rarr;
-          </a>
+          </button>
         </motion.div>
       )}
 
@@ -215,9 +198,6 @@ export default function GoldNShiny({
         </div>
       )}
 
-      {/* Floating Wishes */}
-      {!isPreview && wishes.length > 0 && <FloatingWishes wishes={wishes} />}
-
       {/* Main Card */}
       <motion.div
         className="relative z-10 max-w-lg w-[90%] mx-auto rounded-2xl shadow-2xl overflow-hidden"
@@ -225,11 +205,9 @@ export default function GoldNShiny({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
       >
-        {/* Card background with dark glass effect */}
         <div className="absolute inset-0 bg-black/60 backdrop-blur-xl" />
         <div className="absolute inset-0 border border-yellow-600/20 rounded-2xl" />
 
-        {/* Gold accent line at top */}
         <motion.div
           className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-yellow-400 to-transparent"
           initial={{ scaleX: 0 }}
@@ -237,11 +215,9 @@ export default function GoldNShiny({
           transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
         />
 
-        {/* Decorative gold corners */}
         <DecorativeCorners />
 
         <div className="relative p-8 space-y-6">
-          {/* Company logo */}
           {greeting.companyLogoUrl && !isTrial && (
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
@@ -259,7 +235,6 @@ export default function GoldNShiny({
             </motion.div>
           )}
 
-          {/* Trial watermark instead of logo */}
           {isTrial && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -271,7 +246,6 @@ export default function GoldNShiny({
             </motion.div>
           )}
 
-          {/* Title with gold gradient */}
           <motion.h1
             className="text-4xl md:text-5xl font-bold bg-linear-to-r from-yellow-300 via-amber-400 to-yellow-600 bg-clip-text text-transparent drop-shadow-sm"
             initial={{ opacity: 0, y: 20 }}
@@ -283,7 +257,6 @@ export default function GoldNShiny({
               : greeting.title}
           </motion.h1>
 
-          {/* Message */}
           <motion.p
             className="text-lg md:text-xl leading-relaxed whitespace-pre-wrap text-gray-300"
             initial={{ opacity: 0 }}
@@ -297,7 +270,6 @@ export default function GoldNShiny({
                 "Wishing you abundance and prosperity in the coming year!"}
           </motion.p>
 
-          {/* Sender */}
           <motion.div
             className="pt-6 font-semibold text-lg"
             initial={{ opacity: 0, y: 10 }}
@@ -312,36 +284,6 @@ export default function GoldNShiny({
                 : greeting.senderNameDefault || "Our Family"}
             </span>
           </motion.div>
-
-          {/* Action Buttons */}
-          {!isPreview && (
-            <motion.div
-              className="flex justify-center gap-4 pt-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-            >
-              <motion.button
-                onClick={() => setShowShare(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-white/90 hover:bg-white text-gray-800 px-5 py-2.5 rounded-full text-sm font-medium transition shadow-lg backdrop-blur-sm border border-white/50"
-              >
-                <Share2 size={16} /> Share
-              </motion.button>
-
-              {showSendWish && (
-                <motion.button
-                  onClick={() => setShowDonation(true)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 bg-linear-to-r from-yellow-600 to-amber-500 hover:from-yellow-700 hover:to-amber-600 text-white px-5 py-2.5 rounded-full text-sm font-medium transition shadow-lg shadow-yellow-600/25"
-                >
-                  <Heart size={16} /> Send Wish
-                </motion.button>
-              )}
-            </motion.div>
-          )}
         </div>
       </motion.div>
 
@@ -358,27 +300,6 @@ export default function GoldNShiny({
           </span>
         </motion.div>
       )}
-
-      {/* Send Wish Modal */}
-      <SendWishModal
-        isOpen={showDonation}
-        onClose={() => setShowDonation(false)}
-        greetingId={greeting.id}
-        donationEnabled={greeting.donationEnabled}
-        donationMode={effectiveDonationMode}
-        paymentMethods={paymentMethods || null}
-        onWishSent={(wish) => setWishes((prev) => [wish, ...prev])}
-      />
-
-      {/* Share Modal */}
-      <ShareModal
-        isOpen={showShare}
-        onClose={() => setShowShare(false)}
-        url={typeof window !== "undefined" ? window.location.href : ""}
-        title={greeting.title}
-        isTrial={greeting.isTrial === true}
-        greetingId={greeting.id}
-      />
     </div>
   );
 }

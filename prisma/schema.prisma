@@ -29,6 +29,9 @@ model Template {
   componentSlug   String?  // Maps to a static frontend template component
   isActive        Boolean  @default(true)
   isTrial         Boolean  @default(false)
+  category        String?
+  description     String?
+  premiumPrice    Int?
 
   greetings       Greeting[]
 }
