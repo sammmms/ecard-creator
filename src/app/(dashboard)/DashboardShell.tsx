@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -26,7 +26,7 @@ const navItems = [
   { href: "/app/templates", label: "Templates", icon: FileImage },
   { href: "/app/greetings", label: "My Greetings", icon: Layers },
   { href: "/app/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/app/settings/payments", label: "Settings", icon: Settings },
+  { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
 export default function DashboardShell({
@@ -38,6 +38,54 @@ export default function DashboardShell({
   const { data: session } = useSession();
   const { logoIcon, logoText, logoTextDark, isDark } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  /* ── Swipe to open/close sidebar on mobile ── */
+  const handleTouchEvents = useCallback(() => {
+    let startX = 0;
+    let startY = 0;
+    let tracking = false;
+
+    const onTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      // Only track from left edge (40px) when sidebar is closed
+      // Or anywhere when sidebar is open
+      tracking = startX < 40 || sidebarOpen;
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!tracking) return;
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - startX;
+      const deltaY = Math.abs(touch.clientY - startY);
+
+      // Only trigger if horizontal swipe is dominant (not scrolling vertically)
+      if (deltaY > Math.abs(deltaX)) return;
+
+      if (deltaX > 80 && !sidebarOpen) {
+        setSidebarOpen(true);
+      } else if (deltaX < -80 && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+      tracking = false;
+    };
+
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
+    document.addEventListener("touchend", onTouchEnd, { passive: true });
+
+    return () => {
+      document.removeEventListener("touchstart", onTouchStart);
+      document.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [sidebarOpen]);
+
+  useEffect(() => {
+    // Only add swipe on mobile-sized screens
+    const mq = window.matchMedia("(max-width: 768px)");
+    if (!mq.matches) return;
+    return handleTouchEvents();
+  }, [handleTouchEvents]);
 
   /* ── Shared sidebar inner content ── */
   const sidebarContent = (
@@ -116,9 +164,27 @@ export default function DashboardShell({
   );
 
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen flex overflow-x-hidden bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100">
       {/* ── Mobile top bar ── */}
-      <div className="fixed top-0 left-0 right-0 z-30 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 h-14 flex items-center px-4 md:hidden">
+      <div className="fixed top-0 left-0 right-0 z-30 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 h-14 flex items-center justify-between px-4 md:hidden">
+        <div className="flex items-center gap-2">
+          <Image
+            src={logoIcon}
+            alt="Bizapps.id"
+            width={28}
+            height={28}
+            className="w-7 h-7 object-contain"
+            priority
+          />
+          <Image
+            src={isDark ? logoTextDark : logoText}
+            alt="Bizapps.id"
+            width={80}
+            height={16}
+            className="h-4 object-contain"
+            priority
+          />
+        </div>
         <Button
           variant="icon"
           size="md"
@@ -127,22 +193,6 @@ export default function DashboardShell({
         >
           <Menu size={20} />
         </Button>
-        <div className="flex items-center gap-2 ml-3">
-          <Image
-            src={logoIcon}
-            alt="Bizapps.id"
-            width={28}
-            height={28}
-            className="w-7 h-7 object-contain"
-          />
-          <Image
-            src={isDark ? logoTextDark : logoText}
-            alt="Bizapps.id"
-            width={80}
-            height={16}
-            className="h-4 object-contain"
-          />
-        </div>
       </div>
 
       {/* ── Mobile sidebar overlay ── */}
@@ -168,22 +218,29 @@ export default function DashboardShell({
             >
               {/* Close button + logo */}
               <div className="p-6 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Image
-                    src={logoIcon}
-                    alt="Bizapps.id"
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 object-contain"
-                  />
-                  <Image
-                    src={isDark ? logoTextDark : logoText}
-                    alt="Bizapps.id"
-                    width={100}
-                    height={20}
-                    className="h-5 object-contain"
-                  />
-                </div>
+                <Link href="/" onClick={() => setSidebarOpen(false)}>
+                  <motion.div
+                    className="flex items-center gap-2"
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Image
+                      src={logoIcon}
+                      alt="Bizapps.id"
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 object-contain"
+                      priority
+                    />
+                    <Image
+                      src={isDark ? logoTextDark : logoText}
+                      alt="Bizapps.id"
+                      width={100}
+                      height={20}
+                      className="h-5 object-contain"
+                      priority
+                    />
+                  </motion.div>
+                </Link>
                 <Button
                   variant="icon"
                   size="md"
@@ -208,29 +265,38 @@ export default function DashboardShell({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="flex items-center gap-2">
-            <Image
-              src={logoIcon}
-              alt="Bizapps.id"
-              width={32}
-              height={32}
-              className="w-8 h-8 object-contain"
-            />
-            <Image
-              src={isDark ? logoTextDark : logoText}
-              alt="Bizapps.id"
-              width={100}
-              height={20}
-              className="h-5 object-contain"
-            />
-          </div>
+          <Link href="/">
+            <motion.div
+              className="flex items-center gap-2 cursor-pointer"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            >
+              <Image
+                src={logoIcon}
+                alt="Bizapps.id"
+                width={32}
+                height={32}
+                className="w-8 h-8 object-contain"
+                priority
+              />
+              <Image
+                src={isDark ? logoTextDark : logoText}
+                alt="Bizapps.id"
+                width={100}
+                height={20}
+                className="h-5 object-contain"
+                priority
+              />
+            </motion.div>
+          </Link>
         </motion.div>
 
         {sidebarContent}
       </aside>
 
       {/* ── Main Content ── */}
-      <main className="flex-1 ml-0 md:ml-64 p-4 md:p-8 pt-18 md:pt-8">
+      <main className="flex-1 min-w-0 ml-0 md:ml-64 p-4 md:p-8 pt-18 md:pt-8">
         <motion.div
           className="max-w-7xl mx-auto"
           initial={{ opacity: 0 }}

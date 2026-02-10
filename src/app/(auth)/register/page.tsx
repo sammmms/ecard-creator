@@ -15,7 +15,6 @@ export default function RegisterPage() {
   const router = useRouter();
   const { logoIcon, logoTextDark } = useTheme();
   const [formData, setFormData] = useState({
-    companyName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -39,7 +38,6 @@ export default function RegisterPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          companyName: formData.companyName,
         }),
       });
 
@@ -92,6 +90,7 @@ export default function RegisterPage() {
                 width={48}
                 height={48}
                 className="w-12 h-12 object-contain"
+                priority
               />
               <Image
                 src={logoTextDark}
@@ -138,17 +137,6 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <TextField
-              type="text"
-              label="Company Name"
-              placeholder="Your Company Name"
-              value={formData.companyName}
-              onChange={(e) =>
-                setFormData({ ...formData, companyName: e.target.value })
-              }
-              required
-            />
-
-            <TextField
               type="email"
               label="Email Address"
               placeholder="you@company.com"
@@ -184,7 +172,14 @@ export default function RegisterPage() {
             </div>
 
             <div className="pt-4">
-              <Button type="submit" variant="primary" size="lg" fullWidth loading={isLoading} iconRight={!isLoading ? <ArrowRight size={18} /> : undefined}>
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                fullWidth
+                loading={isLoading}
+                iconRight={!isLoading ? <ArrowRight size={18} /> : undefined}
+              >
                 Create Account
               </Button>
               <p className="mt-4 text-center text-sm text-gray-500">
