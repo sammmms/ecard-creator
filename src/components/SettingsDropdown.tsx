@@ -25,7 +25,15 @@ const darkModeOptions: { value: DarkMode; label: string; icon: typeof Sun }[] =
     { value: "system", label: "System", icon: Monitor },
   ];
 
-export default function SettingsDropdown() {
+interface SettingsDropdownProps {
+  dropDirection?: "up" | "down";
+  renderTrigger?: (props: { onClick: () => void }) => React.ReactNode;
+}
+
+export default function SettingsDropdown({
+  dropDirection = "up",
+  renderTrigger,
+}: SettingsDropdownProps = {}) {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { darkMode, setDarkMode, themeName, setThemeName, effectiveThemeName } =
@@ -46,15 +54,19 @@ export default function SettingsDropdown() {
   }, []);
 
   return (
-    <div className="relative w-full" ref={dropdownRef}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 md:gap-2.5 px-2.5 md:px-3 py-1 md:py-1.5 w-full text-[10px] md:text-[11px] font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-      >
-        <Settings size={12} className="md:hidden" />
-        <Settings size={14} className="hidden md:block" />
-        Preferences
-      </button>
+    <div className={`relative ${renderTrigger ? "" : "w-full"}`} ref={dropdownRef}>
+      {renderTrigger ? (
+        renderTrigger({ onClick: () => setOpen(!open) })
+      ) : (
+        <button
+          onClick={() => setOpen(!open)}
+          className="flex items-center gap-2 md:gap-2.5 px-2.5 md:px-3 py-1 md:py-1.5 w-full text-[10px] md:text-[11px] font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+        >
+          <Settings size={12} className="md:hidden" />
+          <Settings size={14} className="hidden md:block" />
+          Preferences
+        </button>
+      )}
 
       <AnimatePresence>
         {open && (
@@ -63,7 +75,7 @@ export default function SettingsDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-full left-0 mb-2 w-52 md:w-60 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden z-50 max-h-[60vh] md:max-h-[70vh] overflow-y-auto"
+            className={`absolute ${dropDirection === "down" ? "top-full right-0 mt-2" : "bottom-full left-0 mb-2"} w-52 md:w-60 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden z-50 max-h-[60vh] md:max-h-[70vh] overflow-y-auto`}
           >
             {/* Dark Mode Section */}
             <div className="p-2.5 md:p-3 border-b border-gray-100 dark:border-gray-800">

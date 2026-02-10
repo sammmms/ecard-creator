@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 // Seasonal color themes
 export const THEMES = {
@@ -39,6 +40,13 @@ export const THEMES = {
     gradient: "from-emerald-600 to-yellow-500",
     logo: "green",
   },
+  valentine: {
+    name: "Valentine",
+    primary: { light: "#e11d48", dark: "#fb7185" },
+    accent: { light: "#ec4899", dark: "#f9a8d4" },
+    gradient: "from-rose-600 to-pink-400",
+    logo: "pink",
+  },
   halloween: {
     name: "Halloween",
     primary: { light: "#ea580c", dark: "#f97316" }, // orange-600, orange-500
@@ -51,7 +59,7 @@ export const THEMES = {
     primary: { light: "#dc2626", dark: "#ef4444" }, // red-600, red-500
     accent: { light: "#eab308", dark: "#fbbf24" }, // yellow-500, amber-400
     gradient: "from-red-600 to-yellow-500",
-    logo: "gold",
+    logo: "orange",
   },
   indonesia: {
     name: "Indonesia Independence",
@@ -82,8 +90,11 @@ function getSeasonalTheme(): Exclude<ThemeName, "seasonal"> {
   if ((month === 9 && day >= 20) || (month === 10 && day <= 15))
     return "diwali";
 
+  // Valentine's Day (Feb 1-14)
+  if (month === 1 && day >= 1 && day <= 14) return "valentine";
+
   // CNY (Jan 15 - Feb 28, covers most CNY dates)
-  if ((month === 0 && day >= 15) || month === 1) return "cny";
+  if ((month === 0 && day >= 15) || (month === 1 && day >= 15)) return "cny";
 
   // Eid (varies each year by lunar calendar - using rough window Apr-May and Jun-Jul)
   if (month === 3 || month === 4 || month === 5 || month === 6) return "eid";
@@ -104,6 +115,7 @@ interface ThemeContextType {
   theme: (typeof THEMES)[ThemeName];
   effectiveThemeName: Exclude<ThemeName, "seasonal">;
   logoIcon: string;
+  logoSquare: string;
   logoText: string;
   logoTextDark: string;
 }
@@ -112,20 +124,24 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [darkMode, setDarkModeState] = useState<DarkMode>("system");
   const [themeName, setThemeNameState] = useState<ThemeName>("seasonal");
   const [isDark, setIsDark] = useState(false);
   const mountedRef = useRef(false);
   const [mounted, setMounted] = useState(false);
 
-  // Check if we're on a public page (landing, demo, login, register, greeting pages)
-  // Public pages always use seasonal theme, dashboard (/app/*) uses user-selected theme
+  const isLoggedIn = !!session?.user;
+
+  // Pages that always use seasonal theme + light mode (greeting cards, demo)
+  const isFixedThemePage = pathname === "/demo" || pathname?.startsWith("/g/");
+
+  // Public pages use seasonal theme + light mode only when NOT logged in
+  // When logged in, user preferences apply everywhere except greeting/demo pages
   const isPublicPage =
-    pathname === "/" ||
-    pathname === "/demo" ||
-    pathname === "/login" ||
-    pathname === "/register" ||
-    pathname?.startsWith("/g/");
+    isFixedThemePage ||
+    (!isLoggedIn &&
+      (pathname === "/" || pathname === "/login" || pathname === "/register"));
 
   // Get the effective theme (resolve "seasonal" to actual theme)
   // For public pages, always use seasonal theme regardless of user preference
@@ -136,6 +152,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Generate logo paths based on theme
   const logoColor = effectiveTheme.logo;
   const logoIcon = `/logo/${logoColor}-logo.png`;
+  const logoSquare = `/logo/${logoColor}-square.png`;
   const logoText = `/logo/${logoColor}.png`;
   const logoTextDark = `/logo/white.png`; // Always white for dark backgrounds
 
@@ -150,7 +167,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (storedDarkMode) {
         setDarkModeState(storedDarkMode);
       }
-      const storedThemeName = localStorage.getItem("themeName") as ThemeName | null;
+      const storedThemeName = localStorage.getItem(
+        "themeName",
+      ) as ThemeName | null;
       if (storedThemeName && THEMES[storedThemeName]) {
         setThemeNameState(storedThemeName);
       }
@@ -237,6 +256,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         theme: effectiveTheme,
         effectiveThemeName,
         logoIcon,
+        logoSquare,
         logoText,
         logoTextDark,
       }}

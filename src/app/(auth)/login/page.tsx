@@ -90,6 +90,7 @@ function LoginPageInner() {
                 width={48}
                 height={48}
                 className="w-12 h-12 object-contain"
+                priority
               />
               <Image
                 src={logoTextDark}
@@ -158,7 +159,14 @@ function LoginPageInner() {
             </div>
 
             <div className="pt-2">
-              <Button type="submit" variant="primary" size="lg" fullWidth loading={isLoading} iconRight={!isLoading ? <ArrowRight size={18} /> : undefined}>
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                fullWidth
+                loading={isLoading}
+                iconRight={!isLoading ? <ArrowRight size={18} /> : undefined}
+              >
                 Sign In
               </Button>
             </div>
