@@ -37,7 +37,6 @@ export function getSlugReclaimDate(expiresAt: Date): Date {
 
 export async function handleSlugReclaim(
   oldGreetingId: string,
-  newSlug: string,
 ): Promise<void> {
   const oldGreeting = await db.greeting.findUnique({
     where: { id: oldGreetingId },

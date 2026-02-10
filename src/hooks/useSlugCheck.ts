@@ -9,17 +9,19 @@ interface SlugCheckResult {
   availableAt: string | null;
 }
 
+const INITIAL_RESULT: SlugCheckResult = {
+  isChecking: false,
+  isAvailable: null,
+  error: null,
+  availableAt: null,
+};
+
 export function useSlugCheck(
   greetingId: string,
   slug: string,
   currentSlug: string,
 ) {
-  const [result, setResult] = useState<SlugCheckResult>({
-    isChecking: false,
-    isAvailable: null,
-    error: null,
-    availableAt: null,
-  });
+  const [result, setResult] = useState<SlugCheckResult>(INITIAL_RESULT);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -28,7 +30,7 @@ export function useSlugCheck(
       if (abortRef.current) abortRef.current.abort();
 
       if (!value || value === currentSlug) {
-        setResult({ isChecking: false, isAvailable: null, error: null, availableAt: null });
+        setResult(INITIAL_RESULT);
         return;
       }
 
@@ -65,7 +67,7 @@ export function useSlugCheck(
         }
       } catch {
         if (!controller.signal.aborted) {
-          setResult({ isChecking: false, isAvailable: null, error: null, availableAt: null });
+          setResult(INITIAL_RESULT);
         }
       }
     },
@@ -76,7 +78,8 @@ export function useSlugCheck(
     if (timerRef.current) clearTimeout(timerRef.current);
 
     if (!slug || slug === currentSlug) {
-      setResult({ isChecking: false, isAvailable: null, error: null, availableAt: null });
+      // Reset via the debounced callback to avoid direct setState in effect
+      timerRef.current = setTimeout(() => checkSlug(""), 0);
       return;
     }
 
