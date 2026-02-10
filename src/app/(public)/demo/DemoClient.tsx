@@ -35,94 +35,6 @@ const CNY_MESSAGES = [
   "龙马精神",
 ];
 
-// 12 hardcoded demo wishes with Chinese names + messages
-const DEMO_WISHES: WishData[] = [
-  {
-    id: "dw-1",
-    name: "李明",
-    comment: "恭喜发财，万事如意！",
-    createdAt: "2025-01-28T08:00:00Z",
-    donationAmount: null,
-  },
-  {
-    id: "dw-2",
-    name: "王芳",
-    comment: "新年快乐，身体健康！",
-    createdAt: "2025-01-28T09:00:00Z",
-    donationAmount: null,
-  },
-  {
-    id: "dw-3",
-    name: "张伟",
-    comment: "龙年大吉，事业顺利！",
-    createdAt: "2025-01-28T10:00:00Z",
-    donationAmount: 50000,
-  },
-  {
-    id: "dw-4",
-    name: "陈静",
-    comment: "新春快乐，阖家幸福！",
-    createdAt: "2025-01-28T11:00:00Z",
-    donationAmount: null,
-  },
-  {
-    id: "dw-5",
-    name: "刘洋",
-    comment: "恭贺新禧，财源广进！",
-    createdAt: "2025-01-28T12:00:00Z",
-    donationAmount: null,
-  },
-  {
-    id: "dw-6",
-    name: "赵敏",
-    comment: "新年好，心想事成！",
-    createdAt: "2025-01-28T13:00:00Z",
-    donationAmount: 100000,
-  },
-  {
-    id: "dw-7",
-    name: "黄丽",
-    comment: "吉祥如意，步步高升！",
-    createdAt: "2025-01-28T14:00:00Z",
-    donationAmount: null,
-  },
-  {
-    id: "dw-8",
-    name: "周杰",
-    comment: "新春大吉，万事胜意！",
-    createdAt: "2025-01-28T15:00:00Z",
-    donationAmount: null,
-  },
-  {
-    id: "dw-9",
-    name: "吴倩",
-    comment: "恭喜发财，红包拿来！",
-    createdAt: "2025-01-28T16:00:00Z",
-    donationAmount: 25000,
-  },
-  {
-    id: "dw-10",
-    name: "孙磊",
-    comment: "新年快乐，福星高照！",
-    createdAt: "2025-01-28T17:00:00Z",
-    donationAmount: null,
-  },
-  {
-    id: "dw-11",
-    name: "郑华",
-    comment: "龙年行大运，金玉满堂！",
-    createdAt: "2025-01-28T18:00:00Z",
-    donationAmount: null,
-  },
-  {
-    id: "dw-12",
-    name: "林美",
-    comment: "新春愉快，花开富贵！",
-    createdAt: "2025-01-28T19:00:00Z",
-    donationAmount: 75000,
-  },
-];
-
 interface Particle {
   left: number;
   top: number;
@@ -141,7 +53,7 @@ export default function DemoClient({
   greetingId,
   initialWishes,
 }: DemoClientProps) {
-  const allWishes = initialWishes.length > 0 ? initialWishes : DEMO_WISHES;
+  const allWishes = initialWishes;
 
   return (
     <GreetingPageWrapper
