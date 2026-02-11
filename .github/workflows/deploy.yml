@@ -112,7 +112,7 @@ jobs:
             cd current
 
             # Push schema to DB (creates tables on first deploy, safe no-op after)
-            DATABASE_URL="file:/var/www/ecard/data/app.db" npx prisma db push
+            DATABASE_URL="file:/var/www/ecard/data/app.db" node node_modules/prisma/build/index.js db push
 
             # start if missing, reload if exists
             pm2 describe ecard-next > /dev/null \
