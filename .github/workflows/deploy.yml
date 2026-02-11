@@ -60,7 +60,7 @@ jobs:
           cp -r .next/static .next/standalone/.next/
           cp -r prisma .next/standalone/
           cp -r node_modules/prisma .next/standalone/node_modules/prisma
-          cp -r node_modules/@prisma/engines .next/standalone/node_modules/@prisma/engines
+          cp -r node_modules/@prisma/* .next/standalone/node_modules/@prisma/
 
           cd .next/standalone
           tar -czf ../../build.tar.gz .
