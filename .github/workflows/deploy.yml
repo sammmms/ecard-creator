@@ -66,10 +66,11 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }} # ripin
+          username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "build.tar.gz"
           target: "/var/www/ecard"
+          overwrite: true
 
       - name: Deploy on server
         uses: appleboy/ssh-action@v1
@@ -88,20 +89,20 @@ jobs:
             rm -rf next
             mkdir next
 
+            # extract artifact ONCE
             tar -xzf build.tar.gz -C next
             rm build.tar.gz
 
+            # atomic swap
             mv current previous || true
             mv next current
 
+            cd current
 
-            tar -xzf build.tar.gz -C current
-            rm build.tar.gz
-
+            # start if missing, reload if exists
             pm2 describe ecard-next > /dev/null \
               && pm2 reload ecard-next --update-env \
               || pm2 start ecosystem.config.js
-
 
             echo "==> Deployed commit:"
             echo "${GITHUB_SHA}" | cut -c1-7
