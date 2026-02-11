@@ -55,9 +55,12 @@ jobs:
 
       - name: Package build artifact
         run: |
+          cp ecosystem.config.js .next/standalone/
           cp -r public .next/standalone/
           cp -r .next/static .next/standalone/.next/
-          tar -czf build.tar.gz .next/standalone
+
+          cd .next/standalone
+          tar -czf ../../build.tar.gz .
 
       - name: Upload artifact to server
         uses: appleboy/scp-action@v0.1.7
@@ -82,13 +85,23 @@ jobs:
 
             cd /var/www/ecard
 
-            rm -rf current
-            mkdir current
+            rm -rf next
+            mkdir next
+
+            tar -xzf build.tar.gz -C next
+            rm build.tar.gz
+
+            mv current previous || true
+            mv next current
+
 
             tar -xzf build.tar.gz -C current
             rm build.tar.gz
 
-            pm2 reload ecard-next --update-env
+            pm2 describe ecard-next > /dev/null \
+              && pm2 reload ecard-next --update-env \
+              || pm2 start ecosystem.config.js
+
 
             echo "==> Deployed commit:"
             echo "${GITHUB_SHA}" | cut -c1-7
