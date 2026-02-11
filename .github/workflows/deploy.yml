@@ -49,24 +49,32 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -e
+
+            export NVM_DIR="$HOME/.nvm"
+            source $NVM_DIR/nvm.sh
+
             cd /var/www/ecard
 
             echo "==> Pulling latest changes..."
-            git pull origin main
+            git pull origin main --ff-only
 
             echo "==> Installing dependencies..."
-            npm install
+            npm ci
 
             echo "==> Generating Prisma client..."
             npx prisma generate
 
-            echo "==> Pushing database migrations..."
+            echo "==> Syncing database..."
             npx prisma db push
 
             echo "==> Building application..."
             npm run build
 
-            echo "==> Restarting PM2 process..."
-            pm2ripin restart ecard-next
+            echo "==> Reloading PM2..."
+            pm2 reload ecard-next --update-env
 
-            echo "==> Deploy complete!"
+            echo "==> Deployed commit:"
+            git rev-parse --short HEAD
+
+            echo "✅ Deploy complete!"
