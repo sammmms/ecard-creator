@@ -58,6 +58,7 @@ jobs:
           cp ecosystem.config.js .next/standalone/
           cp -r public .next/standalone/
           cp -r .next/static .next/standalone/.next/
+          cp -r prisma .next/standalone/
 
           cd .next/standalone
           tar -czf ../../build.tar.gz .
@@ -97,7 +98,13 @@ jobs:
             mv current previous || true
             mv next current
 
+            # Ensure persistent data directory for SQLite
+            mkdir -p /var/www/ecard/data
+
             cd current
+
+            # Push schema to DB (creates tables on first deploy, safe no-op after)
+            DATABASE_URL="file:/var/www/ecard/data/app.db" npx prisma db push --skip-generate
 
             # start if missing, reload if exists
             pm2 describe ecard-next > /dev/null \
