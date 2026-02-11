@@ -13,9 +13,7 @@ jobs:
   ci:
     name: CI Checks
     runs-on: ubuntu-latest
-    env:
-      NEXTAUTH_URL: http://localhost:3000
-      NEXTAUTH_SECRET: ci_test_secret_key
+
     steps:
       - uses: actions/checkout@v4
 
@@ -24,9 +22,8 @@ jobs:
           node-version: "20"
           cache: npm
 
-      - run: npm ci
-
-      - run: npx prisma generate
+      - name: Install dependencies
+        run: npm ci
 
       - name: Lint
         run: npm run lint
@@ -34,47 +31,63 @@ jobs:
       - name: Type Check
         run: npx tsc --noEmit
 
-      - name: Build
-        run: npm run build
-
   deploy:
-    name: Deploy to Server
+    name: Build & Deploy
     runs-on: ubuntu-latest
     needs: ci
+
     steps:
-      - name: Deploy via SSH
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build application
+        run: npm run build
+
+      - name: Package build artifact
+        run: |
+          cp -r public .next/standalone/
+          cp -r .next/static .next/standalone/.next/
+          tar -czf build.tar.gz .next/standalone
+
+      - name: Upload artifact to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }} # ripin
+          key: ${{ secrets.SSH_KEY }}
+          source: "build.tar.gz"
+          target: "/var/www/ecard"
+
+      - name: Deploy on server
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          username: ${{ secrets.SSH_USER }} # ripin
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -e
 
-            export NVM_DIR="$HOME/.nvm"
-            source $NVM_DIR/nvm.sh
-
             cd /var/www/ecard
 
-            echo "==> Pulling latest changes..."
-            git pull origin main --ff-only
+            rm -rf current
+            mkdir current
 
-            echo "==> Installing dependencies..."
-            npm ci
+            tar -xzf build.tar.gz -C current
+            rm build.tar.gz
 
-            echo "==> Generating Prisma client..."
-            npx prisma generate
-
-            echo "==> Syncing database..."
-            npx prisma db push
-
-            echo "==> Building application..."
-            npm run build
-
-            echo "==> Reloading PM2..."
             pm2 reload ecard-next --update-env
 
             echo "==> Deployed commit:"
-            git rev-parse --short HEAD
+            echo "${GITHUB_SHA}" | cut -c1-7
 
             echo "✅ Deploy complete!"
