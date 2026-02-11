@@ -59,6 +59,8 @@ jobs:
           cp -r public .next/standalone/
           cp -r .next/static .next/standalone/.next/
           cp -r prisma .next/standalone/
+          cp -r node_modules/prisma .next/standalone/node_modules/prisma
+          cp -r node_modules/@prisma .next/standalone/node_modules/@prisma
 
           cd .next/standalone
           tar -czf ../../build.tar.gz .
@@ -94,24 +96,27 @@ jobs:
             tar -xzf build.tar.gz -C next
             rm build.tar.gz
 
-            # atomic swap
+            # Ensure persistent directories
+            mkdir -p /var/www/ecard/data
+            mkdir -p /var/www/ecard/uploads
+
+            # atomic swap (clean previous first to avoid nested dirs)
+            rm -rf previous
             mv current previous || true
             mv next current
 
-            # Ensure persistent data directory for SQLite
-            mkdir -p /var/www/ecard/data
+            # Symlink uploads to persistent directory
+            rm -rf current/public/uploads
+            ln -s /var/www/ecard/uploads current/public/uploads
 
             cd current
 
             # Push schema to DB (creates tables on first deploy, safe no-op after)
-            DATABASE_URL="file:/var/www/ecard/data/app.db" npx prisma db push --skip-generate
+            DATABASE_URL="file:/var/www/ecard/data/app.db" npx prisma db push
 
             # start if missing, reload if exists
             pm2 describe ecard-next > /dev/null \
               && pm2 reload ecard-next --update-env \
               || pm2 start ecosystem.config.js
-
-            echo "==> Deployed commit:"
-            echo "${GITHUB_SHA}" | cut -c1-7
 
             echo "✅ Deploy complete!"
