@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  output: "standalone",
+  outputFileTracingIncludes: {
+    "/**": ["./prisma/app.db", "./data/app.db"],
+  },
 };
 
 export default nextConfig;

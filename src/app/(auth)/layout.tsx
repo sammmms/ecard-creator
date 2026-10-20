@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: {
     default: "Sign In",
-    template: "%s | Bizapps.id",
+    template: "%s | E-Card Creator",
   },
 };
 

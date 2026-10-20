@@ -189,20 +189,15 @@ export default function DashboardShell({
         <div className="flex items-center gap-2">
           <Image
             src={logoIcon}
-            alt="Bizapps.id"
+            alt="E-Card Creator"
             width={28}
             height={28}
             className="w-7 h-7 object-contain"
             priority
           />
-          <Image
-            src={isDark ? logoTextDark : logoText}
-            alt="Bizapps.id"
-            width={80}
-            height={16}
-            className="h-4 object-contain"
-            priority
-          />
+          <span className="font-bold tracking-tight text-sm text-gray-900 dark:text-white">
+            E-Card Creator
+          </span>
         </div>
         <Button
           variant="icon"
@@ -244,20 +239,15 @@ export default function DashboardShell({
                   >
                     <Image
                       src={logoIcon}
-                      alt="Bizapps.id"
+                      alt="E-Card Creator"
                       width={32}
                       height={32}
                       className="w-8 h-8 object-contain"
                       priority
                     />
-                    <Image
-                      src={isDark ? logoTextDark : logoText}
-                      alt="Bizapps.id"
-                      width={100}
-                      height={20}
-                      className="h-5 object-contain"
-                      priority
-                    />
+                    <span className="font-bold tracking-tight text-base text-gray-900 dark:text-white">
+                      E-Card Creator
+                    </span>
                   </motion.div>
                 </Link>
                 <Button
@@ -293,20 +283,15 @@ export default function DashboardShell({
             >
               <Image
                 src={logoIcon}
-                alt="Bizapps.id"
+                alt="E-Card Creator"
                 width={32}
                 height={32}
                 className="w-8 h-8 object-contain"
                 priority
               />
-              <Image
-                src={isDark ? logoTextDark : logoText}
-                alt="Bizapps.id"
-                width={100}
-                height={20}
-                className="h-5 object-contain"
-                priority
-              />
+              <span className="font-bold tracking-tight text-lg text-gray-900 dark:text-white">
+                E-Card Creator
+              </span>
             </motion.div>
           </Link>
         </motion.div>

@@ -39,7 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-data/*.db
+!data/app.db
+!prisma/app.db
 
 # deployment artifacts
 current/

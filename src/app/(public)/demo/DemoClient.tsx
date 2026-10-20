@@ -59,7 +59,7 @@ export default function DemoClient({
     <GreetingPageWrapper
       greeting={{
         id: greetingId,
-        title: "Happy Chinese New Year — Bizapps",
+        title: "Happy Chinese New Year — E-Card Creator",
         submissionsEnabled: true,
         donationEnabled: false,
         donationMode: "none",
@@ -397,28 +397,24 @@ function DemoVisual() {
         </Link>
       </motion.div>
 
-      {/* Bizapps Logo — small screens: icon only at top-center; large screens: icon+text at bottom-right */}
+      {/* E-Card Creator Logo — badge at top-center */}
       <motion.div
         className="absolute z-70 top-4 left-1/2 -translate-x-1/2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 1.5 }}
       >
-        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-black/20 backdrop-blur-sm border border-white/10">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-md border border-white/15">
           <Image
             src={logoIcon}
-            alt="Bizapps"
+            alt="E-Card Creator"
             width={20}
             height={20}
-            className="w-5 h-5 object-contain brightness-0 invert opacity-80"
+            className="w-5 h-5 object-contain brightness-0 invert opacity-90"
           />
-          <Image
-            src={logoTextDark}
-            alt="Bizapps.id"
-            width={72}
-            height={16}
-            className="h-3.5 w-auto object-contain opacity-80"
-          />
+          <span className="text-xs font-semibold tracking-wide text-white/90">
+            E-Card Creator
+          </span>
         </div>
       </motion.div>
 

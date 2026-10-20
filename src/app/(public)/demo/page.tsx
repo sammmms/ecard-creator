@@ -27,7 +27,7 @@ async function ensureDemoGreeting() {
     update: {},
     create: {
       email: "demo@company.com",
-      companyName: "Bizapps",
+      companyName: "E-Card Creator",
     },
   });
 
@@ -47,9 +47,9 @@ async function ensureDemoGreeting() {
       id: DEMO_GREETING_ID,
       userId: user.id,
       templateId: template.id,
-      slug: "bizapps-demo",
+      slug: "ecard-demo",
       title: "Happy Chinese New Year",
-      senderNameDefault: "Bizapps",
+      senderNameDefault: "E-Card Creator",
       messageDefault: "",
       submissionsEnabled: true,
       donationEnabled: false,

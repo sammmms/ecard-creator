@@ -84,31 +84,18 @@ export default function Home() {
       {/* ── Navbar ── */}
       <nav className="fixed top-0 w-full z-50 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <Image
               src={logoIcon}
-              alt="Bizapps.id"
+              alt="E-Card Creator"
               width={32}
               height={32}
               className="w-7 h-7 sm:w-8 sm:h-8 object-contain"
               priority
             />
-            <Image
-              src={logoText}
-              alt="Bizapps.id"
-              width={120}
-              height={24}
-              className="h-5 sm:h-6 object-contain dark:hidden"
-              priority
-            />
-            <Image
-              src={logoTextDark}
-              alt="Bizapps.id"
-              width={120}
-              height={24}
-              className="h-5 sm:h-6 object-contain hidden dark:block"
-              priority
-            />
+            <span className="font-bold tracking-tight text-lg sm:text-xl text-gray-900 dark:text-white">
+              E-Card <span className="text-red-600 dark:text-red-400">Creator</span>
+            </span>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3">
@@ -427,7 +414,7 @@ export default function Home() {
 
       {/* ── Footer ── */}
       <footer className="py-12 border-t border-gray-100 dark:border-white/10 text-center text-gray-500 text-sm">
-        <p>&copy; 2026 Bizapps. All rights reserved.</p>
+        <p>&copy; 2026 E-Card Creator. All rights reserved.</p>
       </footer>
     </div>
   );

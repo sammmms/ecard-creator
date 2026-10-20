@@ -4,7 +4,7 @@ import DashboardShell from "./DashboardShell";
 export const metadata: Metadata = {
   title: {
     default: "Dashboard",
-    template: "%s | Bizapps.id",
+    template: "%s | E-Card Creator",
   },
 };
 

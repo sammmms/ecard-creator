@@ -205,7 +205,7 @@ export default async function OGImage({
             letterSpacing: 2,
           }}
         >
-          BIZAPPS.ID
+          E-CARD CREATOR
         </div>
       </div>
     ),

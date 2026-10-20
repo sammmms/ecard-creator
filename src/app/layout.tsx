@@ -25,37 +25,38 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: {
-    default: "Bizapps.id — Digital Greeting Cards for Chinese New Year & More",
-    template: "%s | Bizapps.id",
+    default: "E-Card Creator — Digital Greeting Cards for Chinese New Year, Valentine & More",
+    template: "%s | E-Card Creator",
   },
   description:
-    "Create elegant, animated digital greeting cards for Chinese New Year. Share prosperity instantly via WhatsApp or QR code. Premium templates with integrated digital angpao.",
+    "Create elegant, animated digital greeting cards for Chinese New Year, Valentine, and special occasions. Share prosperity instantly via WhatsApp or QR code. Premium templates with integrated digital wishes.",
   keywords: [
     "Chinese New Year greeting card",
+    "Valentine greeting card",
     "digital greeting card",
     "CNY e-card",
     "animated greeting",
     "digital angpao",
     "lunar new year card",
     "e-card generator",
-    "Bizapps",
+    "E-Card Creator",
   ],
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || "https://ecard.bizapps.id",
+    process.env.NEXT_PUBLIC_BASE_URL || "https://ecard-creator.vercel.app",
   ),
   openGraph: {
-    title: "Bizapps.id — Digital Greeting Cards",
+    title: "E-Card Creator — Digital Greeting Cards",
     description:
-      "Create elegant, animated digital greeting cards for Chinese New Year. Share prosperity instantly via WhatsApp or QR code.",
+      "Create elegant, animated digital greeting cards for every special occasion. Share wishes instantly via WhatsApp or QR code.",
     type: "website",
-    siteName: "Bizapps.id",
+    siteName: "E-Card Creator",
     images: ["/logo/gold-square.png"],
   },
   twitter: {
     card: "summary",
-    title: "Bizapps.id — Digital Greeting Cards",
+    title: "E-Card Creator — Digital Greeting Cards",
     description:
-      "Create elegant, animated digital greeting cards for Chinese New Year.",
+      "Create elegant, animated digital greeting cards for every special occasion.",
     images: ["/logo/gold-square.png"],
   },
   icons: {

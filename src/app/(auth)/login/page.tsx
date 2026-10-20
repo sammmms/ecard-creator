@@ -99,19 +99,15 @@ function LoginPageInner() {
             <div className="flex items-center justify-center gap-3 mb-6">
               <Image
                 src={logoIcon}
-                alt="Bizapps.id"
+                alt="E-Card Creator"
                 width={48}
                 height={48}
                 className="w-12 h-12 object-contain"
                 priority
               />
-              <Image
-                src={logoTextDark}
-                alt="Bizapps.id"
-                width={160}
-                height={32}
-                className="h-8 object-contain"
-              />
+              <span className="text-2xl font-bold tracking-tight text-white">
+                E-Card Creator
+              </span>
             </div>
             <p className="text-lg text-gray-300 font-light leading-relaxed">
               Connect with prosperity. Share your wishes instantly with elegant,
